@@ -631,3 +631,35 @@ body {
     justify-content: flex-start;
   }
 }
+
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: rgba(0, 80, 35, 0.35); /* koyu yeşil transparan */
+  border: 1px solid rgba(0, 255, 140, 0.22);
+  text-decoration: none;
+  color: #b9ffcf; /* pastel yeşil */
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(6px);
+  transition: 0.25s ease;
+}
+
+.brand-badge:hover {
+  background: rgba(0, 120, 60, 0.45);
+  border-color: rgba(0, 255, 160, 0.45);
+  transform: translateY(-1px);
+}
+
+.brand-text {
+  color: #afffd8;
+}
+
+.brand-icon {
+  font-size: 1.1rem;
+}
