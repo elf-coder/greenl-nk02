@@ -58,6 +58,8 @@ app.get("/api/news", async (req, res) => {
       "hisse",
       "dolar",
       "spor",
+      "otomotiv",
+      "araba",
       "futbol",
       "basketbol",
       "transfer",
