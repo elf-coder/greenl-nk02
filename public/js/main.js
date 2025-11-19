@@ -1,19 +1,21 @@
 // Ana JS: navbar active durumu, yıl, haberler ve kategoriler
+// Ana JS: navbar active durumu, yıl, haberler ve kategoriler
 
 document.addEventListener("DOMContentLoaded", async () => {
   highlightActiveNav();
   setYear();
 
-  // Önce haberler gelsin (API + kara liste vs.)
+  // 1) Önce haberleri store'a yükle (API + kara liste vs.)
   await initNews();
 
-  // Sonra bu haberlere göre kategoriler ve diğerleri çalışsın
+  // 2) Sonra bu haberlere göre diğer bölümler çalışsın
   initCategoriesPage();
   initRecycling();
   initVolunteer();
   initForum();
 });
 
+// ------------------ NAVBAR & YIL ------------------
 
 function highlightActiveNav() {
   const htmlEl = document.documentElement;
@@ -32,78 +34,83 @@ function setYear() {
   if (span) span.textContent = new Date().getFullYear();
 }
 
-// ----- Haberler (statik JSON, sonra API ile değiştirilebilir) -----
+// ------------------ HABERLER ------------------
 
+// Statik örnekler (API gelmezse fallback)
 const sampleNews = [
   {
     id: 1,
     title: "Akdeniz'de deniz suyu sıcaklıkları mevsim normallerinin üzerinde",
-    summary: "Yeni ölçümler, Akdeniz'deki yüzey suyu sıcaklıklarının uzun dönem ortalamasının belirgin şekilde üstüne çıktığını gösteriyor.",
+    summary:
+      "Yeni ölçümler, Akdeniz'deki yüzey suyu sıcaklıklarının uzun dönem ortalamasının belirgin şekilde üstüne çıktığını gösteriyor.",
     source: "Çevre Ajansı",
     date: "2025-06-12",
     category: "iklim",
     tags: ["iklim", "deniz"],
-    url: "#"
+    url: "#",
   },
   {
     id: 2,
     title: "İstanbul'da plastik atık toplama istasyonları genişletiliyor",
-    summary: "Büyükşehir belediyesi, mahalle bazlı yeni plastik ve ambalaj atığı toplama noktalarını hayata geçiriyor.",
+    summary:
+      "Büyükşehir belediyesi, mahalle bazlı yeni plastik ve ambalaj atığı toplama noktalarını hayata geçiriyor.",
     source: "Yerel Haber",
     date: "2025-05-28",
     category: "atik",
     tags: ["atik", "geri-donusum", "sehir"],
-    url: "#"
+    url: "#",
   },
   {
     id: 3,
     title: "Rüzgar enerjisinde yeni rekor",
-    summary: "Birçok ülkede elektrik ihtiyacının önemli kısmı ilk kez rüzgar ve güneşten karşılandı.",
+    summary:
+      "Birçok ülkede elektrik ihtiyacının önemli kısmı ilk kez rüzgar ve güneşten karşılandı.",
     source: "Enerji Raporu",
     date: "2025-04-15",
     category: "enerji",
     tags: ["enerji", "yenilenebilir"],
-    url: "#"
+    url: "#",
   },
   {
     id: 4,
     title: "Ege'de orman yangınlarına karşı erken uyarı sistemi test ediliyor",
-    summary: "Uydu görüntüleri ve yapay zekâ destekli tahmin modelleriyle yangın riski daha oluşmadan değerlendiriliyor.",
+    summary:
+      "Uydu görüntüleri ve yapay zekâ destekli tahmin modelleriyle yangın riski daha oluşmadan değerlendiriliyor.",
     source: "Bilim Haber",
     date: "2025-07-02",
     category: "yangin",
     tags: ["yangin", "iklim"],
-    url: "#"
+    url: "#",
   },
   {
     id: 5,
     title: "Şehir içi bisiklet yolları karbon ayak izini düşürüyor",
-    summary: "Yeni bir çalışma, bisiklet altyapısına yapılan her yatırımın uzun vadede emisyonu anlamlı ölçüde azalttığını gösteriyor.",
+    summary:
+      "Yeni bir çalışma, bisiklet altyapısına yapılan her yatırımın uzun vadede emisyonu anlamlı ölçüde azalttığını gösteriyor.",
     source: "Araştırma Özeti",
     date: "2025-03-09",
     category: "karbon",
     tags: ["karbon", "ulasim"],
-    url: "#"
+    url: "#",
   },
   {
     id: 6,
     title: "Atık yağların toplanmasıyla binlerce litre su korunuyor",
-    summary: "Evsel atık yağların lavaboya dökülmesi yerine toplama noktalarına bırakılması, su ekosistemlerini ciddi şekilde koruyor.",
+    summary:
+      "Evsel atık yağların lavaboya dökülmesi yerine toplama noktalarına bırakılması, su ekosistemlerini ciddi şekilde koruyor.",
     source: "Su Gözlem Merkezi",
     date: "2025-01-19",
     category: "atik",
     tags: ["atik", "su", "geri-donusum"],
-    url: "#"
-  }
+    url: "#",
+  },
 ];
 
-let newsStore = sampleNews.slice();   // YENİ SATIR
+// Burada tutulan veri hem ana sayfa hem kategoriler tarafından kullanılıyor
+let newsStore = sampleNews.slice();
 
-
-async function initNews() {
-  const newsList = document.getElementById("news-list");
-  if (!newsList) return;
-
+// Sadece veriyi çeker, DOM'a dokunmaz
+async function fetchNewsIntoStore() {
   // Varsayılan: statik örnekler
   newsStore = sampleNews.slice();
 
@@ -111,7 +118,6 @@ async function initNews() {
     const resp = await fetch("/api/news");
     const json = await resp.json();
 
-    // Haber yoksa sampleNews kullanmaya devam et
     if (json && Array.isArray(json.articles) && json.articles.length) {
       newsStore = json.articles.map((a, idx) => ({
         id: idx + 1,
@@ -127,14 +133,25 @@ async function initNews() {
   } catch (err) {
     console.error("API'den haber alınamadı, sampleNews kullanılacak:", err);
   }
+}
 
-  // HABERLERİ ÇİZ
+// Bu fonksiyon HER SAYFADA çağrılır: önce store'u doldurur,
+// sonra sadece ana sayfadaysa listeyi çizer + filtreleri bağlar.
+async function initNews() {
+  await fetchNewsIntoStore();
+
+  const newsList = document.getElementById("news-list");
+  if (!newsList) {
+    // Kategoriler, eylem vb. sayfalar: sadece veri lazım, DOM yok
+    return;
+  }
+
+  // Ana sayfadaysak kartları çiz ve filtreleri bağla
   renderNewsCards("all");
-
-  // FİLTRE BUTONLARINI AKTİF ET
   attachNewsFilterHandlers();
 }
 
+// Filtre butonlarını aktif hale getirir
 function attachNewsFilterHandlers() {
   const filterContainer = document.querySelector("[data-news-filters]");
   if (!filterContainer) return;
@@ -153,23 +170,24 @@ function attachNewsFilterHandlers() {
   });
 }
 
-
-
+// Haber kartlarını çizer
 function renderNewsCards(filter) {
   const newsList = document.getElementById("news-list");
   if (!newsList) return;
 
-  
   let filtered = newsStore;
   if (filter && filter !== "all") {
     filtered = newsStore.filter((item) => {
-      return item.category === filter || (item.tags || []).includes(filter);
+      return (
+        item.category === filter || (item.tags || []).includes(filter)
+      );
     });
   }
 
   newsList.innerHTML = "";
   if (!filtered.length) {
-    newsList.innerHTML = '<p class="prose">Bu filtreye uygun haber bulunamadı.</p>';
+    newsList.innerHTML =
+      '<p class="prose">Bu filtreye uygun haber bulunamadı.</p>';
     return;
   }
 
@@ -188,10 +206,12 @@ function renderNewsCards(filter) {
       </div>
       <p class="card-body">${item.summary}</p>
       <div class="card-tags">
-        ${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("")}
+        ${(item.tags || [])
+          .map((t) => `<span class="tag">#${t}</span>`)
+          .join("")}
       </div>
       <div class="card-actions">
-        <a href="${item.url}" class="card-link">
+        <a href="${item.url}" class="card-link" target="_blank" rel="noopener">
           Habere git
           <span class="card-link-icon">↗</span>
         </a>
@@ -204,17 +224,26 @@ function renderNewsCards(filter) {
 
 function formatCategoryLabel(cat) {
   switch (cat) {
-    case "iklim": return "🌍 İklim";
-    case "dogA": return "🌱 Doğa";
-    case "yangin": return "🔥 Yangın";
-    case "deniz": return "🌊 Deniz & Okyanus";
-    case "enerji": return "⚡ Enerji";
-    case "atik": return "🧪 Atık – Geri Dönüşüm";
-    case "karbon": return "👣 Karbon Ayak İzi";
-    default: return "Çevre";
+    case "iklim":
+      return "🌍 İklim";
+    case "dogA":
+      return "🌱 Doğa";
+    case "yangin":
+      return "🔥 Yangın";
+    case "deniz":
+      return "🌊 Deniz & Okyanus";
+    case "enerji":
+      return "⚡ Enerji";
+    case "atik":
+      return "🧪 Atık – Geri Dönüşüm";
+    case "karbon":
+      return "👣 Karbon Ayak İzi";
+    default:
+      return "Çevre";
   }
 }
 
+// Haber metnine bakıp kategori tahmini yapar
 function detectCategory(a) {
   const text = ((a.title || "") + " " + (a.description || "")).toLowerCase();
 
@@ -234,6 +263,7 @@ function detectCategory(a) {
   return "iklim"; // varsayılan
 }
 
+// Haberlerden tag listesi çıkarır
 function buildTags(a) {
   const text = ((a.title || "") + " " + (a.description || "")).toLowerCase();
   const tags = [];
@@ -241,7 +271,11 @@ function buildTags(a) {
   if (text.includes("iklim") || text.includes("ısınma")) tags.push("iklim");
   if (text.includes("deniz") || text.includes("okyanus")) tags.push("deniz");
   if (text.includes("yangın")) tags.push("yangin");
-  if (text.includes("geri dönüşüm") || text.includes("atık") || text.includes("plastik"))
+  if (
+    text.includes("geri dönüşüm") ||
+    text.includes("atık") ||
+    text.includes("plastik")
+  )
     tags.push("atik");
   if (text.includes("enerji") || text.includes("rüzgar") || text.includes("güneş"))
     tags.push("enerji");
@@ -252,19 +286,22 @@ function buildTags(a) {
   return tags;
 }
 
-
 function formatDate(str) {
   if (!str) return "";
   const d = new Date(str);
   if (isNaN(d)) return str;
-  return d.toLocaleDateString("tr-TR", { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString("tr-TR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
-// ----- Kategoriler sayfası -----
+// ------------------ KATEGORİLER SAYFASI ------------------
 
 function initCategoriesPage() {
   const container = document.getElementById("category-list");
-  if (!container) return;
+  if (!container) return; // sadece kategoriler sayfasında var
 
   const categories = [
     { id: "iklim", label: "🌍 İklim" },
@@ -273,15 +310,16 @@ function initCategoriesPage() {
     { id: "deniz", label: "🌊 Deniz & Okyanus" },
     { id: "enerji", label: "⚡ Enerji" },
     { id: "atik", label: "🧪 Atık – Geri Dönüşüm" },
-    { id: "karbon", label: "👣 Karbon Ayak İzi" }
+    { id: "karbon", label: "👣 Karbon Ayak İzi" },
   ];
 
   container.innerHTML = "";
 
   categories.forEach((cat) => {
-   const related = newsStore.filter(
-  (n) => n.category === cat.id || (n.tags || []).includes(cat.id)
-  );
+    // DİKKAT: Burada sampleNews değil, API'den gelen newsStore kullanıyoruz
+    const related = newsStore.filter(
+      (n) => n.category === cat.id || (n.tags || []).includes(cat.id)
+    );
 
     const card = document.createElement("article");
     card.className = "card";
@@ -291,15 +329,22 @@ function initCategoriesPage() {
         <span class="card-meta">${related.length} haber</span>
       </div>
       <p class="card-body">
-        Bu kategori, <strong>${cat.label}</strong> etiketiyle işaretlenmiş haberleri içerir.
-        Aşağıda örnek bazı başlıkları görebilirsin.
+        Bu kategori, <strong>${cat.label}</strong> etiketiyle işaretlenmiş çevre haberlerini içerir.
+        Aşağıda son haberlerden bazı başlıkları görebilirsin.
       </p>
       <ul class="bullet-list">
-        ${related.slice(0, 3).map(r => `<li>${r.title}</li>`).join("") || "<li>Şimdilik örnek haber yok.</li>"}
+        ${
+          related.length
+            ? related
+                .slice(0, 3)
+                .map((r) => `<li>${r.title}</li>`)
+                .join("")
+            : "<li>Şimdilik bu etikette haber yok.</li>"
+        }
       </ul>
       <div class="card-actions">
         <a href="index.html" class="card-link">
-          Ana sayfada filtrele
+          Ana sayfada bu etiketi filtrele
           <span class="card-link-icon">↩</span>
         </a>
       </div>
@@ -307,6 +352,14 @@ function initCategoriesPage() {
     container.appendChild(card);
   });
 }
+
+// ------------------ EYLEM REHBERİ / GÖNÜLLÜ / FORUM ------------------
+// (Bu kısımlar senin mevcut kodunla aynı, sadece yukarıyı toparladık)
+
+// ... buradan sonrası: recyclingData, initRecycling, volunteerData, initVolunteer,
+// FORUM fonksiyonları vs. **aynen** senin sürümündeki gibi kalabilir.
+// Onları değiştirmeye gerek yok; yukarıdaki blok sadece haber & kategori mantığını düzeltiyor.
+
 
 // ----- Eylem rehberi: geri dönüşüm noktaları -----
 
