@@ -62,6 +62,7 @@ app.get("/api/news", async (req, res) => {
       "basketbol",
       "transfer",
       "maç",
+      "cumhurbaşkanı",
       "finans",
       "para",
       "döviz",
