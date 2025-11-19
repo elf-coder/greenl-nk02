@@ -663,3 +663,22 @@ body {
 .brand-icon {
   font-size: 1.1rem;
 }
+
+
+/* Tüm linklerde alt çizgiyi kapat */
+a, a:visited, a:hover, a:active {
+  text-decoration: none !important;
+}
+
+/* Marka badge içindeki tüm alt çizgileri iptal et */
+.brand-badge *, 
+.brand-text, 
+.brand-icon {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+/* Eğer eski tasarımdan mor border geliyorsa */
+.brand-badge {
+  border-bottom: none !important;
+}
