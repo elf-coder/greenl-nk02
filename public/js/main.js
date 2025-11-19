@@ -1,14 +1,19 @@
 // Ana JS: navbar active durumu, yıl, haberler ve kategoriler
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   highlightActiveNav();
   setYear();
-  initNews();
+
+  // Önce haberler gelsin (API + kara liste vs.)
+  await initNews();
+
+  // Sonra bu haberlere göre kategoriler ve diğerleri çalışsın
   initCategoriesPage();
   initRecycling();
   initVolunteer();
   initForum();
 });
+
 
 function highlightActiveNav() {
   const htmlEl = document.documentElement;
@@ -274,7 +279,10 @@ function initCategoriesPage() {
   container.innerHTML = "";
 
   categories.forEach((cat) => {
-    const related = sampleNews.filter((n) => n.category === cat.id || (n.tags || []).includes(cat.id));
+   const related = newsStore.filter(
+  (n) => n.category === cat.id || (n.tags || []).includes(cat.id)
+  );
+
     const card = document.createElement("article");
     card.className = "card";
     card.innerHTML = `
