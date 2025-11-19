@@ -19,7 +19,7 @@ app.get("/api/news", async (req, res) => {
     // URL'den q parametresi gelirse onu kullan, yoksa çevre odaklı varsayılan arama
     const q =
       req.query.q ||
-      '"iklim" OR "çevre" OR "yangın" OR "orman" OR "deniz" OR "okyanus" OR "enerji" OR "geri dönüşüm" OR "yenilenebilir"';
+      '"iklim" OR "çevre" OR "yangın" OR "orman" OR "deniz" OR "okyanus" OR "enerji" OR "geri dönüşüm" OR "yenilenebilir" OR "ağaç"';
 
     const url = new URL("https://newsapi.org/v2/everything");
     url.searchParams.set("q", q);
@@ -72,6 +72,10 @@ app.get("/api/news", async (req, res) => {
       "soygun",
       "saldırı",
       "katil",
+      "trafik",
+      "felsefe",
+      "hukuk",
+      "kitap",
       "mahkeme",
       "tutuklandı",
       "serbest bırakıldı",
