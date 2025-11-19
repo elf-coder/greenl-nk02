@@ -92,30 +92,47 @@ const sampleNews = [
   }
 ];
 
-function initNews() {
+let newsStore = sampleNews.slice();   // YENİ SATIR
+
+async function initNews() {
   const newsList = document.getElementById("news-list");
   if (!newsList) return;
 
-  renderNewsCards("all");
+  // Varsayılan: statik örnekler
+  newsStore = sampleNews.slice();
 
-  const filterContainer = document.querySelector("[data-news-filters]");
-  if (filterContainer) {
-    filterContainer.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-filter]");
-      if (!btn) return;
-      const filter = btn.getAttribute("data-filter");
-      renderNewsCards(filter);
-    });
+  try {
+    const resp = await fetch("/api/news");
+    const json = await resp.json();
+
+    if (json && Array.isArray(json.articles) && json.articles.length) {
+      newsStore = json.articles.map((a, idx) => ({
+        id: idx + 1,
+        title: a.title || "(Başlık yok)",
+        summary: a.description || a.content || "",
+        source: (a.source && a.source.name) || "Kaynak",
+        date: a.publishedAt,
+        category: detectCategory(a),
+        tags: buildTags(a),
+        url: a.url || "#",
+      }));
+    }
+  } catch (err) {
+    console.error("API'den haber alınamadı, sampleNews kullanılacak:", err);
   }
+
+  renderNewsCards("all");
 }
+
 
 function renderNewsCards(filter) {
   const newsList = document.getElementById("news-list");
   if (!newsList) return;
 
-  let filtered = sampleNews;
+  
+  let filtered = newsStore;
   if (filter && filter !== "all") {
-    filtered = sampleNews.filter((item) => {
+    filtered = newsStore.filter((item) => {
       return item.category === filter || (item.tags || []).includes(filter);
     });
   }
@@ -167,6 +184,44 @@ function formatCategoryLabel(cat) {
     default: return "Çevre";
   }
 }
+
+function detectCategory(a) {
+  const text = ((a.title || "") + " " + (a.description || "")).toLowerCase();
+
+  if (text.includes("yangın")) return "yangin";
+  if (text.includes("deniz") || text.includes("okyanus")) return "deniz";
+  if (text.includes("rüzgar") || text.includes("güneş") || text.includes("enerji"))
+    return "enerji";
+  if (
+    text.includes("geri dönüşüm") ||
+    text.includes("atık") ||
+    text.includes("plastik")
+  )
+    return "atik";
+  if (text.includes("karbon") || text.includes("emisyon")) return "karbon";
+  if (text.includes("orman") || text.includes("doğa")) return "dogA";
+
+  return "iklim"; // varsayılan
+}
+
+function buildTags(a) {
+  const text = ((a.title || "") + " " + (a.description || "")).toLowerCase();
+  const tags = [];
+
+  if (text.includes("iklim") || text.includes("ısınma")) tags.push("iklim");
+  if (text.includes("deniz") || text.includes("okyanus")) tags.push("deniz");
+  if (text.includes("yangın")) tags.push("yangin");
+  if (text.includes("geri dönüşüm") || text.includes("atık") || text.includes("plastik"))
+    tags.push("atik");
+  if (text.includes("enerji") || text.includes("rüzgar") || text.includes("güneş"))
+    tags.push("enerji");
+  if (text.includes("karbon") || text.includes("emisyon"))
+    tags.push("karbon");
+
+  if (!tags.length) tags.push("cevre");
+  return tags;
+}
+
 
 function formatDate(str) {
   if (!str) return "";

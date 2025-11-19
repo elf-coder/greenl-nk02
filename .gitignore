@@ -32,3 +32,10 @@ build/
 *.tmp
 *.temp
 *.cache
+
+
+node_modules/
+.env
+npm-debug.log*
+*.log
+.DS_Store
