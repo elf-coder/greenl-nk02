@@ -5,7 +5,7 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Statik dosyalar
+// Statik dosyalar (public klasörü)
 app.use(express.static(path.join(__dirname, "public")));
 
 // Çevre haberleri için NewsAPI proxy
@@ -16,14 +16,14 @@ app.get("/api/news", async (req, res) => {
       return res.status(500).json({ error: "NEWS_API_KEY tanımlı değil" });
     }
 
-    // İstersen URL'den q parametresi ile özel arama gönderebilirsin
+    // URL'den q parametresi gelirse onu kullan, yoksa çevre odaklı varsayılan arama
     const q =
       req.query.q ||
-      'iklim OR çevre OR "çevre kirliliği" OR geri dönüşüm OR ekoloji';
+      '"iklim" OR "çevre" OR "yangın" OR "orman" OR "deniz" OR "okyanus" OR "enerji" OR "geri dönüşüm" OR "yenilenebilir"';
 
     const url = new URL("https://newsapi.org/v2/everything");
     url.searchParams.set("q", q);
-    url.searchParams.set("language", "tr");     // Türkçe haberler
+    url.searchParams.set("language", "tr");      // Türkçe haberler
     url.searchParams.set("sortBy", "publishedAt");
     url.searchParams.set("pageSize", "20");
 
@@ -33,15 +33,66 @@ app.get("/api/news", async (req, res) => {
       },
     });
 
+    if (!response.ok) {
+      console.error("NewsAPI HTTP hata kodu:", response.status);
+      return res
+        .status(500)
+        .json({ error: "Haber API isteği başarısız oldu", status: response.status });
+    }
+
     const data = await response.json();
-    res.json(data);
+
+    if (!data || !Array.isArray(data.articles)) {
+      console.error("Beklenmeyen NewsAPI yanıtı:", data);
+      return res
+        .status(500)
+        .json({ error: "Haber API beklenmeyen yanıt döndürdü" });
+    }
+
+    // ---- Ekstra Filtre: BTC, finans, siyaset vb. haberleri temizle ----
+    const blacklist = [
+      "bitcoin",
+      "kripto",
+      "btc",
+      "borsa",
+      "hisse",
+      "dolar",
+      "spor",
+      "futbol",
+      "basketbol",
+      "transfer",
+      "maç",
+      "finans",
+      "para",
+      "döviz",
+      "ekonomi",
+      "yatırım",
+      "altın",
+      "euro",
+      "faiz",
+      "enflasyon",
+      "siyaset",
+      "milletvekili",
+      "bakan",
+      "meclis",
+      "parti",
+      "seçim",
+    ];
+
+    data.articles = data.articles.filter((a) => {
+      const t = ((a.title || "") + " " + (a.description || "")).toLowerCase();
+      return !blacklist.some((bad) => t.includes(bad));
+    });
+
+    // İstersen sadece filtered articles dönebilirsin, ama front-end zaten json.articles bekliyor
+    return res.json(data);
   } catch (err) {
     console.error("Haber API hatası:", err);
     res.status(500).json({ error: "Haber API isteği hata verdi" });
   }
 });
 
-// Sağlık kontrolü (aynı kalsın)
+// Sağlık kontrolü (Render health check)
 app.get("/api/status", (req, res) => {
   res.json({ ok: true, name: "GreenLink", version: "1.0.0" });
 });
