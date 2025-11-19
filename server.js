@@ -71,6 +71,7 @@ app.get("/api/news", async (req, res) => {
       "cinayet",
       "soygun",
       "saldırı",
+      "katil",
       "mahkeme",
       "tutuklandı",
       "serbest bırakıldı",

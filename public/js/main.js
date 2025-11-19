@@ -94,6 +94,7 @@ const sampleNews = [
 
 let newsStore = sampleNews.slice();   // YENİ SATIR
 
+
 async function initNews() {
   const newsList = document.getElementById("news-list");
   if (!newsList) return;
@@ -105,6 +106,7 @@ async function initNews() {
     const resp = await fetch("/api/news");
     const json = await resp.json();
 
+    // Haber yoksa sampleNews kullanmaya devam et
     if (json && Array.isArray(json.articles) && json.articles.length) {
       newsStore = json.articles.map((a, idx) => ({
         id: idx + 1,
@@ -121,8 +123,31 @@ async function initNews() {
     console.error("API'den haber alınamadı, sampleNews kullanılacak:", err);
   }
 
+  // HABERLERİ ÇİZ
   renderNewsCards("all");
+
+  // FİLTRE BUTONLARINI AKTİF ET
+  attachNewsFilterHandlers();
 }
+
+function attachNewsFilterHandlers() {
+  const filterContainer = document.querySelector("[data-news-filters]");
+  if (!filterContainer) return;
+
+  filterContainer.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-filter]");
+    if (!btn) return;
+
+    const filter = btn.getAttribute("data-filter");
+    renderNewsCards(filter);
+
+    // Görsel olarak hangi filtrenin seçili olduğunu göstermek için
+    const allButtons = filterContainer.querySelectorAll("button[data-filter]");
+    allButtons.forEach((b) => b.classList.remove("active-filter"));
+    btn.classList.add("active-filter");
+  });
+}
+
 
 
 function renderNewsCards(filter) {
