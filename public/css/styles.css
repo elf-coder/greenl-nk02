@@ -682,3 +682,14 @@ a, a:visited, a:hover, a:active {
 .brand-badge {
   border-bottom: none !important;
 }
+
+/* Sayfayı minimum yükseklikte tutup footer'ın alta inmesini sağlar */
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main.container {
+  flex: 1; /* içerik büyüdükçe footer aşağı itilir */
+}
