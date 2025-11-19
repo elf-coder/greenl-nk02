@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr" data-page="volunteer">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gönüllü Ol – GreenLink</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+    
+<div class="navbar-shell">
+  <header class="navbar">
+    <div class="nav-left">
+      <a href="index.html" class="brand-pill">
+        <span class="brand-icon">🌿</span>
+        <span class="brand-text">
+          <span class="brand-title">GREENLINK</span>
+          <span class="brand-sub">Çevre Haber & Eylem Ağı</span>
+        </span>
+      </a>
+      <span class="chip">
+        <span class="chip-dot"></span>
+        <span>Minimal & mobil öncelikli</span>
+      </span>
+    </div>
+    <nav class="nav-right">
+      <a href="index.html" class="nav-link" data-page="home"><span>Ana Sayfa</span></a>
+      <a href="kategoriler.html" class="nav-link" data-page="categories"><span>Kategoriler</span></a>
+      <a href="eylem.html" class="nav-link" data-page="activism"><span>Eylem Rehberi</span></a>
+      <a href="gonullu.html" class="nav-link" data-page="volunteer"><span>Gönüllü Ol</span></a>
+      <a href="forum.html" class="nav-link" data-page="forum"><span>Forum</span></a>
+      <a href="hakkimizda.html" class="nav-link" data-page="about"><span>Hakkımızda</span></a>
+    </nav>
+  </header>
+</div>
+
+    <main class="container">
+      
+<section class="section">
+  <div class="section-header">
+    <h1 class="section-title">Yerelde Gönüllü Ol</h1>
+    <p class="section-subtitle">Şehrinde katılabileceğin sahil/orman temizlikleri ve çevre kulüplerini listeleyen minimal bölüm.</p>
+  </div>
+  <div class="split">
+    <div class="split-card">
+      <h2 class="section-title" style="font-size:1.05rem;">Şehrine Göre Etkinlikler</h2>
+      <p class="prose">
+        Şehrini yaz, hazır JSON'dan sana örnek gönüllü eylemleri gösterelim.
+        İleride bu yapıyı gerçek etkinlik/dernek API'lerine bağlayabilirsin.
+      </p>
+      <div class="input-row">
+        <input id="vol-city-input" class="input" type="text" placeholder="Örnek: İstanbul, Ankara, İzmir..." />
+        <button id="vol-city-search-btn" class="btn">Etkinlikleri Göster</button>
+      </div>
+      <div id="volunteer-results" class="card-grid" style="margin-top:0.9rem;"></div>
+    </div>
+    <div class="split-card">
+      <h2 class="section-title" style="font-size:1.05rem;">Gönüllü Olmanın Hafif Kılavuzu</h2>
+      <p class="prose">
+        Bazen sadece ilk adımı atmak zor gelir. Küçük başlaman yeterli:
+      </p>
+      <ul class="bullet-list">
+        <li>Ayda bir kez sahil/orman temizliğine katıl.</li>
+        <li>Mahallendeki geri dönüşüm kutularının doluluk durumunu belediyeye bildirmeyi alışkanlık haline getir.</li>
+        <li>Okulda/işte bir “yeşil ekip” kurup basit hedefler belirleyin.</li>
+        <li>Yerel çevre derneklerinin e-posta listesine kaydol, gelişmelerden haberdar ol.</li>
+        <li>En önemlisi: Sosyal medyada değil, sokakta görün.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+    </main>
+    
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year-span"></span> GreenLink. Daha yeşil bir dünya için.</span>
+    <div class="footer-links">
+      <a class="footer-link" href="hakkimizda.html">Hakkımızda</a>
+      <a class="footer-link" href="iletisim.html">İletişim</a>
+      <a class="footer-link" href="kullanim-sartlari.html">Kullanım Şartları</a>
+      <a class="footer-link" href="gizlilik.html">Gizlilik Politikası</a>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <script src="js/main.js"></script>
+</body>
+</html>

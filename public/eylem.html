@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr" data-page="activism">
+<head>
+  <meta charset="UTF-8" />
+  <title>Eylem Rehberi – GreenLink</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+    
+<div class="navbar-shell">
+  <header class="navbar">
+    <div class="nav-left">
+      <a href="index.html" class="brand-pill">
+        <span class="brand-icon">🌿</span>
+        <span class="brand-text">
+          <span class="brand-title">GREENLINK</span>
+          <span class="brand-sub">Çevre Haber & Eylem Ağı</span>
+        </span>
+      </a>
+      <span class="chip">
+        <span class="chip-dot"></span>
+        <span>Minimal & mobil öncelikli</span>
+      </span>
+    </div>
+    <nav class="nav-right">
+      <a href="index.html" class="nav-link" data-page="home"><span>Ana Sayfa</span></a>
+      <a href="kategoriler.html" class="nav-link" data-page="categories"><span>Kategoriler</span></a>
+      <a href="eylem.html" class="nav-link" data-page="activism"><span>Eylem Rehberi</span></a>
+      <a href="gonullu.html" class="nav-link" data-page="volunteer"><span>Gönüllü Ol</span></a>
+      <a href="forum.html" class="nav-link" data-page="forum"><span>Forum</span></a>
+      <a href="hakkimizda.html" class="nav-link" data-page="about"><span>Hakkımızda</span></a>
+    </nav>
+  </header>
+</div>
+
+    <main class="container">
+      
+<section class="section">
+  <div class="section-header">
+    <h1 class="section-title">Eylem Rehberi</h1>
+    <p class="section-subtitle">Şehrine göre geri dönüşüm & atık toplama noktaları + mini karbon rehberi.</p>
+  </div>
+  <div class="split">
+    <div class="split-card">
+      <h2 class="section-title" style="font-size:1.05rem;">Geri Dönüşüm Noktaları</h2>
+      <p class="prose">
+        Aşağıya şehrini yaz, GreenLink sana statik JSON'dan örnek noktalar göstersin.
+        Daha sonra bu yapıyı belediye veya harita API'leri ile gerçek veriye bağlayabilirsin.
+      </p>
+      <div class="input-row">
+        <input id="city-input" class="input" type="text" placeholder="Örnek: İstanbul, Ankara, İzmir..." />
+        <button id="city-search-btn" class="btn">Noktaları Göster</button>
+      </div>
+      <div id="recycling-results" class="card-grid" style="margin-top:0.9rem;"></div>
+    </div>
+    <div class="split-card">
+      <h2 class="section-title" style="font-size:1.05rem;">Karbonu Küçülten Günlük Alışkanlıklar</h2>
+      <p class="prose">
+        “Bireysel etki çok az” diyenler, bireysel alışkanlıkların domino etkisini küçümsüyor.
+        Bu mini rehber, telefon ekranına layık olacak kadar kısa tutuldu.
+      </p>
+      <ul class="bullet-list">
+        <li>Günde en az bir kısa mesafeyi yürüyerek veya bisikletle git.</li>
+        <li>Evde kullanmadığın prizleri tamamen kapat, stand-by tüketimini azalt.</li>
+        <li>Haftada en az bir gün kırmızı et tüketmemeyi dene.</li>
+        <li>Toplu taşımayı veya paylaşmalı yolculuğu (carpool) daha çok kullan.</li>
+        <li>Daha az, daha kaliteli kıyafet al; hızlı modadan uzak dur.</li>
+        <li>Yerel üreticiden alışveriş yap, taşıma kaynaklı emisyonu düşür.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+    </main>
+    
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year-span"></span> GreenLink. Daha yeşil bir dünya için.</span>
+    <div class="footer-links">
+      <a class="footer-link" href="hakkimizda.html">Hakkımızda</a>
+      <a class="footer-link" href="iletisim.html">İletişim</a>
+      <a class="footer-link" href="kullanim-sartlari.html">Kullanım Şartları</a>
+      <a class="footer-link" href="gizlilik.html">Gizlilik Politikası</a>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <script src="js/main.js"></script>
+</body>
+</html>

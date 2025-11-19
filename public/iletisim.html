@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr" data-page="contact">
+<head>
+  <meta charset="UTF-8" />
+  <title>İletişim – GreenLink</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+    
+<div class="navbar-shell">
+  <header class="navbar">
+    <div class="nav-left">
+      <a href="index.html" class="brand-pill">
+        <span class="brand-icon">🌿</span>
+        <span class="brand-text">
+          <span class="brand-title">GREENLINK</span>
+          <span class="brand-sub">Çevre Haber & Eylem Ağı</span>
+        </span>
+      </a>
+      <span class="chip">
+        <span class="chip-dot"></span>
+        <span>Minimal & mobil öncelikli</span>
+      </span>
+    </div>
+    <nav class="nav-right">
+      <a href="index.html" class="nav-link" data-page="home"><span>Ana Sayfa</span></a>
+      <a href="kategoriler.html" class="nav-link" data-page="categories"><span>Kategoriler</span></a>
+      <a href="eylem.html" class="nav-link" data-page="activism"><span>Eylem Rehberi</span></a>
+      <a href="gonullu.html" class="nav-link" data-page="volunteer"><span>Gönüllü Ol</span></a>
+      <a href="forum.html" class="nav-link" data-page="forum"><span>Forum</span></a>
+      <a href="hakkimizda.html" class="nav-link" data-page="about"><span>Hakkımızda</span></a>
+    </nav>
+  </header>
+</div>
+
+    <main class="container">
+      
+<section class="section">
+  <div class="section-header">
+    <h1 class="section-title">İletişim</h1>
+    <p class="section-subtitle">GreenLink ile ilgili geri bildirim ve önerilerin için.</p>
+  </div>
+  <div class="split">
+    <div class="split-card">
+      <div class="prose">
+        <p>
+          GreenLink şu an deneysel bir çevre projesidir. Hata bildirimi, öneri veya birlikte üretim için
+          bizimle e-posta üzerinden iletişime geçebilirsin.
+        </p>
+        <p>
+          <strong>E-posta:</strong> <a href="mailto:info@greenlink.local" class="footer-link">info@greenlink.local</a>
+        </p>
+        <p>
+          Form gönderimleri gerçek bir backend'e bağlı değildir; bu sayfa sadece arayüzü gösterir.
+        </p>
+      </div>
+    </div>
+    <div class="split-card">
+      <h2 class="section-title" style="font-size:1.05rem;">Basit İletişim Formu (Dummy)</h2>
+      <form class="forum-form" onsubmit="event.preventDefault(); alert('Form şu an sadece taslak. Backend eklediğinde gerçek gönderime açılacak.');">
+        <input class="input" type="text" placeholder="Adın" />
+        <input class="input" type="email" placeholder="E-posta adresin" />
+        <textarea class="textarea" placeholder="Mesajın"></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
+          <button type="submit" class="btn">Gönder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+    </main>
+    
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year-span"></span> GreenLink. Daha yeşil bir dünya için.</span>
+    <div class="footer-links">
+      <a class="footer-link" href="hakkimizda.html">Hakkımızda</a>
+      <a class="footer-link" href="iletisim.html">İletişim</a>
+      <a class="footer-link" href="kullanim-sartlari.html">Kullanım Şartları</a>
+      <a class="footer-link" href="gizlilik.html">Gizlilik Politikası</a>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <script src="js/main.js"></script>
+</body>
+</html>

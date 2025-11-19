@@ -1,0 +1,12 @@
+{
+  "name": "greenlink",
+  "version": "1.0.0",
+  "description": "GreenLink - Minimal çevreci haber ve eylem platformu",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

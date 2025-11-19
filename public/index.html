@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="tr" data-page="home">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ana Sayfa – GreenLink</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+    
+<div class="navbar-shell">
+  <header class="navbar">
+    <div class="nav-left">
+      <a href="index.html" class="brand-pill">
+        <span class="brand-icon">🌿</span>
+        <span class="brand-text">
+          <span class="brand-title">GREENLINK</span>
+          <span class="brand-sub">Çevre Haber & Eylem Ağı</span>
+        </span>
+      </a>
+      <span class="chip">
+        <span class="chip-dot"></span>
+        <span>Minimal & mobil öncelikli</span>
+      </span>
+    </div>
+    <nav class="nav-right">
+      <a href="index.html" class="nav-link" data-page="home"><span>Ana Sayfa</span></a>
+      <a href="kategoriler.html" class="nav-link" data-page="categories"><span>Kategoriler</span></a>
+      <a href="eylem.html" class="nav-link" data-page="activism"><span>Eylem Rehberi</span></a>
+      <a href="gonullu.html" class="nav-link" data-page="volunteer"><span>Gönüllü Ol</span></a>
+      <a href="forum.html" class="nav-link" data-page="forum"><span>Forum</span></a>
+      <a href="hakkimizda.html" class="nav-link" data-page="about"><span>Hakkımızda</span></a>
+    </nav>
+  </header>
+</div>
+
+    <main class="container">
+      
+<section class="hero section">
+  <div class="hero-main">
+    <div class="hero-kicker">
+      <span>🌍 Gerçek zamanlı çevre odağı</span>
+    </div>
+    <h1 class="hero-title">Haber oku, noktayı bul, harekete geç.</h1>
+    <p class="hero-lead">
+      GreenLink, iklim krizi, yangınlar, denizler ve enerji dönüşümüyle ilgili haberleri tek bir minimal ekranda toplar;
+      aynı zamanda geri dönüşüm & atık toplama noktalarına ve yerel gönüllü eylemlere köprü olur.
+    </p>
+    <div class="hero-meta">
+      <span>• Hafif, koyu yeşil tasarım</span>
+      <span>• Mobil öncelikli yapı</span>
+      <span>• API ile kolay entegre edilebilir</span>
+    </div>
+  </div>
+  <aside class="hero-side">
+    <h2 class="hero-side-title">GreenLink nedir?</h2>
+    <p class="hero-side-text">
+      Haber sitesi + eylem rehberi + gönüllü platformunun minimalist birleşimi.
+      Tek amacımız: haberi okuduktan sonra “şimdi ne yapabilirim?” sorusuna net cevap vermek.
+    </p>
+    <ul class="hero-side-list">
+      <li>İklim & çevre haber akışı</li>
+      <li>Şehrine göre geri dönüşüm / atık noktaları</li>
+      <li>Yerel gönüllülük ve temizlik günleri</li>
+      <li>Küçük ama etkili karbon azaltma ipuçları</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <h2 class="section-title">Çevre Haberleri</h2>
+    <p class="section-subtitle">API'den veya statik JSON'dan kart kart haber akışı.</p>
+  </div>
+  <div id="news-filters" class="card-meta" data-news-filters>
+    <span>Filtre:</span>
+    <button class="btn btn-ghost" data-filter="all">Tümü</button>
+    <button class="btn btn-ghost" data-filter="iklim">İklim</button>
+    <button class="btn btn-ghost" data-filter="dogA">Doğa</button>
+    <button class="btn btn-ghost" data-filter="yangin">Yangın</button>
+    <button class="btn btn-ghost" data-filter="deniz">Deniz & Okyanus</button>
+    <button class="btn btn-ghost" data-filter="enerji">Enerji</button>
+    <button class="btn btn-ghost" data-filter="atik">Atık & Geri Dönüşüm</button>
+    <button class="btn btn-ghost" data-filter="karbon">Karbon Ayak İzi</button>
+  </div>
+  <div id="news-list" class="card-grid"></div>
+</section>
+
+<section class="section">
+  <div class="split">
+    <div class="split-card">
+      <div class="section-header">
+        <h2 class="section-title">Nasıl daha az atık üretirim?</h2>
+      </div>
+      <p class="prose">
+        Küçük değişiklikler bile, özellikle milyonlarca kişi tarafından tekrarlandığında, ciddi etki yaratır.
+        Bu rehber hem mobilde hem masaüstünde sade görünmesi için madde madde hazırlandı.
+      </p>
+      <ul class="bullet-list">
+        <li>Yeniden doldurulabilir şişe kullan, tek kullanımlıkları azalt.</li>
+        <li>Mümkün oldukça cam ve metal ambalaj tercih et.</li>
+        <li>Plastik pipet, çatal, bıçak almamaya çalış.</li>
+        <li>Aldığın ürünün geri dönüştürülebilir olup olmadığına özellikle bak.</li>
+        <li>Atıkları karıştırma: plastik / kâğıt / metal / cam ayrı kutulara.</li>
+        <li>Dijital faturayı seç, kağıt israfını azalt.</li>
+      </ul>
+    </div>
+    <div class="split-card">
+      <div class="section-header">
+        <h2 class="section-title">Şehrindeki geri dönüşüm & gönüllülük</h2>
+      </div>
+      <p class="prose">
+        GreenLink'in <strong>Eylem Rehberi</strong> bölümünde şehrini girerek:
+      </p>
+      <ul class="bullet-list">
+        <li>♻️ Plastik ve genel atık toplama noktalarını,</li>
+        <li>🔋 Pil toplama bölmelerini,</li>
+        <li>🧴 Atık yağ teslim merkezlerini,</li>
+        <li>🗑️ Belediyenin resmi geri dönüşüm alanlarını</li>
+      </ul>
+      <p class="prose">
+        görebilir, <strong>Gönüllü Ol</strong> sayfasından da sahil/orman temizlikleri ve çevre kulüplerine katılabilirsin.
+      </p>
+      <a href="eylem.html" class="btn" style="margin-top:0.5rem;">Eylem Rehberi'ne git</a>
+    </div>
+  </div>
+</section>
+
+    </main>
+    
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year-span"></span> GreenLink. Daha yeşil bir dünya için.</span>
+    <div class="footer-links">
+      <a class="footer-link" href="hakkimizda.html">Hakkımızda</a>
+      <a class="footer-link" href="iletisim.html">İletişim</a>
+      <a class="footer-link" href="kullanim-sartlari.html">Kullanım Şartları</a>
+      <a class="footer-link" href="gizlilik.html">Gizlilik Politikası</a>
+    </div>
+  </div>
+</footer>
+
+  </div>
+  <script src="js/main.js"></script>
+</body>
+</html>
