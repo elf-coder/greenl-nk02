@@ -1,5 +1,4 @@
 // Ana JS: navbar active durumu, yıl, haberler ve kategoriler
-// Ana JS: navbar active durumu, yıl, haberler ve kategoriler
 
 document.addEventListener("DOMContentLoaded", async () => {
   highlightActiveNav();
@@ -12,7 +11,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCategoriesPage();
   initRecycling();
   initVolunteer();
-  initForum();
+  // Forum artık Supabase tarafında forum.js ile yönetiliyor,
+  // burada initForum çağırmıyoruz.
 });
 
 // ------------------ NAVBAR & YIL ------------------
@@ -178,9 +178,7 @@ function renderNewsCards(filter) {
   let filtered = newsStore;
   if (filter && filter !== "all") {
     filtered = newsStore.filter((item) => {
-      return (
-        item.category === filter || (item.tags || []).includes(filter)
-      );
+      return item.category === filter || (item.tags || []).includes(filter);
     });
   }
 
@@ -279,8 +277,7 @@ function buildTags(a) {
     tags.push("atik");
   if (text.includes("enerji") || text.includes("rüzgar") || text.includes("güneş"))
     tags.push("enerji");
-  if (text.includes("karbon") || text.includes("emisyon"))
-    tags.push("karbon");
+  if (text.includes("karbon") || text.includes("emisyon")) tags.push("karbon");
 
   if (!tags.length) tags.push("cevre");
   return tags;
@@ -316,7 +313,6 @@ function initCategoriesPage() {
   container.innerHTML = "";
 
   categories.forEach((cat) => {
-    // DİKKAT: Burada sampleNews değil, API'den gelen newsStore kullanıyoruz
     const related = newsStore.filter(
       (n) => n.category === cat.id || (n.tags || []).includes(cat.id)
     );
@@ -353,72 +349,66 @@ function initCategoriesPage() {
   });
 }
 
-// ------------------ EYLEM REHBERİ / GÖNÜLLÜ / FORUM ------------------
-// (Bu kısımlar senin mevcut kodunla aynı, sadece yukarıyı toparladık)
-
-// ... buradan sonrası: recyclingData, initRecycling, volunteerData, initVolunteer,
-// FORUM fonksiyonları vs. **aynen** senin sürümündeki gibi kalabilir.
-// Onları değiştirmeye gerek yok; yukarıdaki blok sadece haber & kategori mantığını düzeltiyor.
-
+// ------------------ EYLEM REHBERİ / GÖNÜLLÜ ------------------
 
 // ----- Eylem rehberi: geri dönüşüm noktaları -----
 
 const recyclingData = {
-  "istanbul": [
+  istanbul: [
     {
       type: "Plastik / Ambalaj",
       name: "Kadıköy Plastik Atık Noktası",
       desc: "Mahalle bazlı plastik ve ambalaj atığı konteyneri.",
       address: "Moda Caddesi, Kadıköy",
-      icon: "♻️"
+      icon: "♻️",
     },
     {
       type: "Pil",
       name: "Beşiktaş Pil Toplama Kutusu",
       desc: "Küçük el tipi piller için yeşil kutu.",
       address: "Beşiktaş Meydanı, Çevre Bilgilendirme Çadırı",
-      icon: "🔋"
+      icon: "🔋",
     },
     {
       type: "Atık Yağ",
       name: "Atık Yağ Teslim Noktası",
       desc: "Evsel atık yağları teslim edebileceğin resmi nokta.",
       address: "Üsküdar Belediye Binası önü",
-      icon: "🧴"
-    }
+      icon: "🧴",
+    },
   ],
-  "ankara": [
+  ankara: [
     {
       type: "Plastik / Kağıt",
       name: "Kızılay Geri Dönüşüm Noktası",
       desc: "Karışık ambalaj (plastik, kağıt, metal) konteyneri.",
       address: "Kızılay Meydanı, Güvenpark yanı",
-      icon: "♻️"
+      icon: "♻️",
     },
     {
       type: "Pil",
       name: "Pil Toplama Kutusu",
       desc: "Küçük piller için kırmızı kutu.",
       address: "Çankaya Belediyesi hizmet binası",
-      icon: "🔋"
-    }
+      icon: "🔋",
+    },
   ],
-  "izmir": [
+  izmir: [
     {
       type: "Plastik / Cam",
       name: "Karşıyaka Atık Noktası",
       desc: "Cam ve plastik şişe odaklı geri dönüşüm ünitesi.",
       address: "Karşıyaka sahil bandı",
-      icon: "♻️"
+      icon: "♻️",
     },
     {
       type: "Atık Yağ",
       name: "Evsel Atık Yağ Toplama",
       desc: "Belirli günlerde mobil atık yağ aracı.",
       address: "Konak Meydanı (hafta içi belirli günler)",
-      icon: "🧴"
-    }
-  ]
+      icon: "🧴",
+    },
+  ],
 };
 
 function initRecycling() {
@@ -444,7 +434,8 @@ function renderRecycling(city) {
 
   const data = recyclingData[city];
   if (!data) {
-    container.innerHTML = '<p class="prose">Bu şehir için henüz örnek veri yok. Daha sonra JSON\'a ekleyebilirsin.</p>';
+    container.innerHTML =
+      "<p class=\"prose\">Bu şehir için henüz örnek veri yok. Daha sonra JSON'a ekleyebilirsin.</p>";
     return;
   }
 
@@ -468,36 +459,36 @@ function renderRecycling(city) {
 // ----- Gönüllü Ol: etkinlikler -----
 
 const volunteerData = {
-  "istanbul": [
+  istanbul: [
     {
       title: "Kadıköy Sahil Temizliği",
       desc: "Pazar sabahı 09:00'da sahil boyunca çöp toplama etkinliği.",
       when: "Her ayın ilk pazarı",
-      org: "Yerel Çevre Gönüllüleri"
+      org: "Yerel Çevre Gönüllüleri",
     },
     {
       title: "Moda Parkı Yeşil Buluşma",
       desc: "Ağaç dikimi, tohum topları ve kompost atölyesi.",
       when: "Yaz döneminde her iki haftada bir",
-      org: "Yeşil Adımlar Kolektifi"
-    }
+      org: "Yeşil Adımlar Kolektifi",
+    },
   ],
-  "ankara": [
+  ankara: [
     {
       title: "Eymir Gölü Kıyı Temizliği",
       desc: "Göl çevresinde çöp toplama ve farkındalık yürüyüşü.",
       when: "Bahar aylarında belirli hafta sonları",
-      org: "Ankara Doğa Dostları"
-    }
+      org: "Ankara Doğa Dostları",
+    },
   ],
-  "izmir": [
+  izmir: [
     {
       title: "Karşıyaka Sahil Çöp Toplama Günü",
       desc: "Gönüllülerle birlikte sahil hattı boyunca çöp toplama.",
       when: "Her ayın son cumartesi günü",
-      org: "İzmir Çevre Gönüllüleri"
-    }
-  ]
+      org: "İzmir Çevre Gönüllüleri",
+    },
+  ],
 };
 
 function initVolunteer() {
@@ -523,7 +514,8 @@ function renderVolunteer(city) {
 
   const data = volunteerData[city];
   if (!data) {
-    container.innerHTML = '<p class="prose">Bu şehir için henüz örnek gönüllü etkinliği eklenmedi.</p>';
+    container.innerHTML =
+      "<p class=\"prose\">Bu şehir için henüz örnek gönüllü etkinliği eklenmedi.</p>";
     return;
   }
 
@@ -542,98 +534,4 @@ function renderVolunteer(city) {
     `;
     container.appendChild(card);
   });
-}
-
-// ----- Forum (localStorage) -----
-
-const FORUM_KEY = "greenlink_forum_posts";
-
-function initForum() {
-  const form = document.getElementById("forum-form");
-  const list = document.getElementById("forum-list");
-  if (!form || !list) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const nameInput = document.getElementById("forum-name");
-    const titleInput = document.getElementById("forum-title");
-    const bodyInput = document.getElementById("forum-body");
-    const name = (nameInput.value || "").trim() || "Anonim";
-    const title = (titleInput.value || "").trim();
-    const body = (bodyInput.value || "").trim();
-
-    if (!title || !body) return;
-
-    const posts = loadPosts();
-    posts.unshift({
-      id: Date.now(),
-      name,
-      title,
-      body,
-      createdAt: new Date().toISOString()
-    });
-    savePosts(posts);
-
-    titleInput.value = "";
-    bodyInput.value = "";
-    renderPosts();
-  });
-
-  renderPosts();
-}
-/*
-function loadPosts() {
-  try {
-    const raw = localStorage.getItem(FORUM_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) || [];
-  } catch {
-    return [];
-  }
-}
-
-function savePosts(posts) {
-  try {
-    localStorage.setItem(FORUM_KEY, JSON.stringify(posts));
-  } catch {
-    // ignore
-  }
-}
-*/
-function renderPosts() {
-  const list = document.getElementById("forum-list");
-  if (!list) return;
-  const posts = loadPosts();
-
-  if (!posts.length) {
-    list.innerHTML = '<p class="prose">Henüz hiç gönderi yok. İlk başlığı açmak ister misin?</p>';
-    return;
-  }
-
-  list.innerHTML = "";
-  posts.forEach((p) => {
-    const item = document.createElement("article");
-    item.className = "forum-item";
-    item.innerHTML = `
-      <div class="forum-item-header">
-        <h3 class="forum-item-title">${escapeHtml(p.title)}</h3>
-        <div class="forum-item-meta">
-          <span>${escapeHtml(p.name)}</span>
-          <span>•</span>
-          <span>${formatDate(p.createdAt)}</span>
-        </div>
-      </div>
-      <div class="forum-item-body">${escapeHtml(p.body)}</div>
-    `;
-    list.appendChild(item);
-  });
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }

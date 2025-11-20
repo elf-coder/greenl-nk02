@@ -9,87 +9,110 @@
 <body>
   <div class="page-wrapper">
     
-<div class="navbar-shell">
-  <header class="navbar">
-    <div class="nav-left">
-      <a href="index.html" class="brand-pill">
-        <span class="brand-icon">🌿</span>
-        <span class="brand-text">
-          <span class="brand-title">GREENLINK</span>
-          <span class="brand-sub">Çevre Haber & Eylem Ağı</span>
-        </span>
-      </a>
-      <span class="chip">
-        <span class="chip-dot"></span>
-        <span>Görevimiz: Doğayı Savunmak!</span>
-      </span>
+    <div class="navbar-shell">
+      <header class="navbar">
+        <div class="nav-left">
+          <a href="index.html" class="brand-pill">
+            <span class="brand-icon">🌿</span>
+            <span class="brand-text">
+              <span class="brand-title">GREENLINK</span>
+              <span class="brand-sub">Çevre Haber & Eylem Ağı</span>
+            </span>
+          </a>
+          <span class="chip">
+            <span class="chip-dot"></span>
+            <span>Görevimiz: Doğayı Savunmak!</span>
+          </span>
+        </div>
+        <nav class="nav-right">
+          <a href="index.html" class="nav-link" data-page="home"><span>Ana Sayfa</span></a>
+          <a href="kategoriler.html" class="nav-link" data-page="categories"><span>Kategoriler</span></a>
+          <a href="eylem.html" class="nav-link" data-page="activism"><span>Eylem Rehberi</span></a>
+          <a href="gonullu.html" class="nav-link" data-page="volunteer"><span>Gönüllü Ol</span></a>
+          <a href="forum.html" class="nav-link" data-page="forum"><span>Forum</span></a>
+          <a href="hakkimizda.html" class="nav-link" data-page="about"><span>Hakkımızda</span></a>
+        </nav>
+      </header>
     </div>
-    <nav class="nav-right">
-      <a href="index.html" class="nav-link" data-page="home"><span>Ana Sayfa</span></a>
-      <a href="kategoriler.html" class="nav-link" data-page="categories"><span>Kategoriler</span></a>
-      <a href="eylem.html" class="nav-link" data-page="activism"><span>Eylem Rehberi</span></a>
-      <a href="gonullu.html" class="nav-link" data-page="volunteer"><span>Gönüllü Ol</span></a>
-      <a href="forum.html" class="nav-link" data-page="forum"><span>Forum</span></a>
-      <a href="hakkimizda.html" class="nav-link" data-page="about"><span>Hakkımızda</span></a>
-    </nav>
-  </header>
-</div>
 
     <main class="container">
       
-<section class="section">
-  <div class="section-header">
-    <h1 class="section-title">GreenLink Forum</h1>
-    <p class="section-subtitle">TARTIŞMA ALANI</p>
-  </div>
-  <p class="prose">
-    GreenLink Forum – Çevre üzerine hızlı tartışma alanı.
-Burada düşüncelerini paylaşabilir, soru sorabilir, çevreyle ilgili deneyimlerini aktarabilirsin ya da doğa adına yapılabilecek yerel eylemler hakkında önerilerde bulunabilirsin.
-  </p>
-</section>
+      <section class="section">
+        <div class="section-header">
+          <h1 class="section-title">GreenLink Forum</h1>
+          <p class="section-subtitle">TARTIŞMA ALANI</p>
+        </div>
+        <p class="prose">
+          GreenLink Forum – Çevre üzerine hızlı tartışma alanı.
+          Burada düşüncelerini paylaşabilir, soru sorabilir, çevreyle ilgili deneyimlerini aktarabilirsin
+          ya da doğa adına yapılabilecek yerel eylemler hakkında önerilerde bulunabilirsin.
+        </p>
+      </section>
 
-<section class="section split">
-  <div class="split-card">
-    <h2 class="section-title" style="font-size:1.05rem;">Yeni başlık aç</h2>
-    <div id="forum-list"></div>
+      <section class="section split">
+        <!-- Sol: Yeni başlık -->
+        <div class="split-card">
+          <h2 class="section-title" style="font-size:1.05rem;">Yeni başlık aç</h2>
 
-    <form id="forum-form" class="forum-form">
-      <input id="forum-name" class="input" type="text" placeholder="İsim / takma ad (zorunlu değil ama güzel olur)" />
-      <input id="forum-title" class="input" type="text" placeholder="Başlığın (örn: Kadıköy sahil temizliği deneyimim)" required />
-      <textarea id="forum-body" class="textarea" placeholder="Düşüncelerini, sorunu veya önerini yaz..." required></textarea>
-      <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
-        <button type="submit" class="btn">Gönder</button>
-      </div>
-    </form>
-    <p class="prose" style="margin-top:0.4rem;">
-      <strong>Not:</strong> Topluluğa hoş geldin! İlk mesajını bırakmak ister misin? 
-      <p>Lütfen saygılı olalım ve spam yapmayalım.</p>
-    </p>
-  </div>
-  <div class="split-card">
-    <h2 class="section-title" style="font-size:1.05rem;">Son Tartışmalar</h2>
-    <div id="forum-list" class="forum-list">
-      <!-- JS ile doldurulur -->
-    </div>
-  </div>
-</section>
+          <form id="forum-form" class="forum-form">
+            <input
+              id="forum-name"
+              class="input"
+              type="text"
+              placeholder="İsim / takma ad (zorunlu değil ama güzel olur)"
+            />
+            <input
+              id="forum-title"
+              class="input"
+              type="text"
+              placeholder="Başlığın (örn: Kadıköy sahil temizliği deneyimim)"
+              required
+            />
+            <textarea
+              id="forum-body"
+              class="textarea"
+              placeholder="Düşüncelerini, sorunu veya önerini yaz..."
+              required
+            ></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
+              <button type="submit" class="btn">Gönder</button>
+            </div>
+          </form>
+
+          <p class="prose" style="margin-top:0.4rem;">
+            <strong>Not:</strong> Topluluğa hoş geldin! İlk mesajını bırakmak ister misin?
+          </p>
+          <p class="prose">Lütfen saygılı olalım ve spam yapmayalım.</p>
+        </div>
+
+        <!-- Sağ: Son tartışmalar -->
+        <div class="split-card">
+          <h2 class="section-title" style="font-size:1.05rem;">Son Tartışmalar</h2>
+          <div id="forum-list" class="forum-list">
+            <!-- JS ile doldurulur -->
+          </div>
+        </div>
+      </section>
 
     </main>
     
-<footer class="footer">
-  <div class="footer-inner">
-    <span>© <span id="year-span"></span> GreenLink: Daha yeşil bir dünya için bir aradayız.</span>
-    <div class="footer-links">
-      <a class="footer-link" href="hakkimizda.html">Hakkımızda</a>
-      <a class="footer-link" href="iletisim.html">İletişim</a>
-      <a class="footer-link" href="kullanim-sartlari.html">Kullanım Şartları</a>
-      <a class="footer-link" href="gizlilik.html">Gizlilik Politikası</a>
-    </div>
-  </div>
-</footer>
+    <footer class="footer">
+      <div class="footer-inner">
+        <span>© <span id="year-span"></span> GreenLink: Daha yeşil bir dünya için bir aradayız.</span>
+        <div class="footer-links">
+          <a class="footer-link" href="hakkimizda.html">Hakkımızda</a>
+          <a class="footer-link" href="iletisim.html">İletişim</a>
+          <a class="footer-link" href="kullanim-sartlari.html">Kullanım Şartları</a>
+          <a class="footer-link" href="gizlilik.html">Gizlilik Politikası</a>
+        </div>
+      </div>
+    </footer>
 
   </div>
+
+  <!-- Genel JS -->
   <script src="js/main.js"></script>
+  <!-- Forum için Supabase JS -->
   <script type="module" src="forum.js"></script>
 </body>
 </html>
