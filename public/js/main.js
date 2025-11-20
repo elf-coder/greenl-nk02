@@ -581,7 +581,7 @@ function initForum() {
 
   renderPosts();
 }
-
+/*
 function loadPosts() {
   try {
     const raw = localStorage.getItem(FORUM_KEY);
@@ -599,7 +599,7 @@ function savePosts(posts) {
     // ignore
   }
 }
-
+*/
 function renderPosts() {
   const list = document.getElementById("forum-list");
   if (!list) return;
