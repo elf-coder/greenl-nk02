@@ -2,7 +2,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // --- KENDİ PROJE BİLGİLERİN ---
-// Bunlar sende zaten doğru, aynen kullanıyorum
 const supabaseUrl = "https://zbitkecyagymhlsklpqr.supabase.co";
 const supabaseAnonKey = "sb_publishable_dNC7xQgXQiH11TZjGnfkOQ_CWYblLnw";
 
@@ -21,12 +20,14 @@ async function fetchForumPosts() {
 
     if (error) {
       console.error("Supabase GET hata:", error);
-      list.innerHTML = "<p>Forum verisi çekilemedi. Lütfen daha sonra tekrar dene.</p>";
+      list.innerHTML =
+        "<p>Forum verisi çekilemedi. Lütfen daha sonra tekrar dene.</p>";
       return;
     }
 
     if (!data || data.length === 0) {
-      list.innerHTML = "<p>Henüz hiç gönderi yok. İlk başlığı sen aç.</p>";
+      list.innerHTML =
+        "<p>Henüz hiç gönderi yok. İlk başlığı sen aç.</p>";
       return;
     }
 
@@ -53,7 +54,8 @@ async function fetchForumPosts() {
       .join("");
   } catch (err) {
     console.error("Forum fetch hata:", err);
-    list.innerHTML = "<p>Forum verisi çekilirken bir hata oluştu.</p>";
+    list.innerHTML =
+      "<p>Forum verisi çekilirken bir hata oluştu.</p>";
   }
 }
 
@@ -108,11 +110,17 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-// Sayfa hazır olunca başlat
-document.addEventListener("DOMContentLoaded", () => {
+// --- Forum sayfasını başlat ---
+// DİKKAT: type="module" script en altta, DOM zaten hazır,
+// o yüzden DOMContentLoaded dinlemeye GEREK YOK.
+function initForumPage() {
   const form = document.getElementById("forum-form");
-  if (!form) return;
+  const list = document.getElementById("forum-list");
+  if (!form || !list) return; // forum olmayan sayfalarda sessizce çık
 
   form.addEventListener("submit", handleForumSubmit);
   fetchForumPosts();
-});
+}
+
+// script yüklendiği anda çalıştır
+initForumPage();
