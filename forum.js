@@ -110,17 +110,9 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-// --- Forum sayfasını başlat ---
-// DİKKAT: type="module" script en altta, DOM zaten hazır,
-// o yüzden DOMContentLoaded dinlemeye GEREK YOK.
-function initForumPage() {
-  const form = document.getElementById("forum-form");
-  const list = document.getElementById("forum-list");
-  if (!form || !list) return; // forum olmayan sayfalarda sessizce çık
-
+// Sayfa yüklendiğinde hemen bağlan (DOM zaten hazır, script en altta)
+const form = document.getElementById("forum-form");
+if (form) {
   form.addEventListener("submit", handleForumSubmit);
-  fetchForumPosts();
 }
-
-// script yüklendiği anda çalıştır
-initForumPage();
+fetchForumPosts();
