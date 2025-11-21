@@ -19,7 +19,8 @@ app.get("/api/news", async (req, res) => {
     // URL'den q parametresi gelirse onu kullan, yoksa çevre odaklı varsayılan arama
     const q =
   req.query.q ||
-  '"çevre" OR "doğa" OR "ekoloji" OR "sürdürülebilirlik" OR "iklim" OR "çevresel etkiler" OR "karbon ayak izi" OR "yenilenebilir enerji" OR "biyoçeşitlilik" OR "ekosistem" OR "küresel ısınma" OR "iklim değişikliği" OR "çevre koruma" OR "çevre bilinci" OR "çevreci teknoloji" OR "doğal yaşam" OR "yeşil enerji" OR "çevre politikaları" OR "çevre felaketleri" OR "sıcaklık artışı" OR "sera gazları" OR "karbon emisyonu" OR "ormansızlaşma" OR "deniz seviyesinin yükselmesi" OR "buzullar" OR "iklim krizi" OR "karbon nötr" OR "güneş enerjisi" OR "rüzgar enerjisi" OR "hidroelektrik" OR "nükleer enerji" OR "temiz enerji" OR "enerji verimliliği" OR "okyanus kirliliği" OR "plastik atık" OR "mikroplastik" OR "mercan resifleri" OR "deniz canlıları" OR "balıkçılık politikaları" OR "geri dönüşüm" OR "atık yönetimi" OR "sıfır atık" OR "döngüsel ekonomi" OR "kompost" OR "organik tarım" OR "sürdürülebilir tarım" OR "toprak kirliliği" OR "pestisitler" OR "gıda israfı" OR "nesli tükenen türler"';
+  '"çevre" OR "doğa" OR "ekoloji" OR "iklim" OR "iklim krizi" OR "iklim değişikliği" OR "küresel ısınma" OR "sürdürülebilirlik" OR "yenilenebilir enerji" OR "güneş enerjisi" OR "rüzgar enerjisi" OR "hidroelektrik" OR "enerji verimliliği" OR "karbon ayak izi" OR "karbon emisyonu" OR "sera gazları" OR "doğal yaşam" OR "biyoçeşitlilik" OR "ekosistem" OR "deniz kirliliği" OR "okyanus" OR "plastik atık" OR "mikroplastik" OR "yangın" OR "orman" OR "geri dönüşüm" OR "atık yönetimi" OR "sıfır atık" OR "kirlilik" OR "nesli tükenen türler"';
+
 
     const url = new URL("https://newsapi.org/v2/everything");
     url.searchParams.set("q", q);
