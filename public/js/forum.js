@@ -1,7 +1,7 @@
 // forum.js
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/esm/supabase.js";
 
-// --- KENDİ PROJE BİLGİLERİN ---
+// --- PROJE BİLGİLERİ ---
 const supabaseUrl = "https://zbitkecyagymhlsklpqr.supabase.co";
 const supabaseAnonKey = "sb_publishable_dNC7xQgXQiH11TZjGnfkOQ_CWYblLnw";
 
@@ -110,7 +110,7 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-// Sayfa yüklendiğinde hemen bağlan (DOM zaten hazır, script en altta)
+// DOM hazır
 const form = document.getElementById("forum-form");
 if (form) {
   form.addEventListener("submit", handleForumSubmit);
