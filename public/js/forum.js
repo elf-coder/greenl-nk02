@@ -1,5 +1,5 @@
 // forum.js
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/esm/supabase.js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // --- PROJE BİLGİLERİ ---
 const supabaseUrl = "https://zbitkecyagymhlsklpqr.supabase.co";
