@@ -9,10 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 2) Sonra bu haberlere göre diğer bölümler çalışsın
   initCategoriesPage();
-  initRecycling();   // Eylem rehberi: Google Maps üzerinden geri dönüşüm noktaları
-  initVolunteer();   // Gönüllü ol sayfası
-  // Forum artık Supabase tarafında forum.js ile yönetiliyor,
-  // burada initForum çağırmıyoruz.
+  initRecycling();        // Eylem rehberi: Google Maps üzerinden geri dönüşüm noktaları
+  initVolunteer();        // Gönüllü ol sayfası (API'siz, bilgilendirme)
+  initEventRequestForm(); // Gönüllü etkinlik talep formu
 });
 
 // ------------------ NAVBAR & YIL ------------------
@@ -450,43 +449,7 @@ async function handleRecyclingSearch(input, resultsDiv) {
   }
 }
 
-// ------------------ GÖNÜLLÜ OL: Statik Etkinlikler (opsiyonel) ------------------
-
-function renderVolunteer(city) {
-  const container = document.getElementById("volunteer-results");
-  if (!container) return;
-  container.innerHTML = "";
-
-  if (!city) {
-    container.innerHTML = '<p class="prose">Lütfen önce bir şehir gir.</p>';
-    return;
-  }
-
-  const data = window.volunteerData ? window.volunteerData[city] : null;
-  if (!data) {
-    container.innerHTML =
-      '<p class="prose">Bu şehir için henüz örnek gönüllü etkinliği eklenmedi.</p>';
-    return;
-  }
-
-  data.forEach((item) => {
-    const card = document.createElement("article");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-header-row">
-        <h3 class="card-title">🤝 ${item.title}</h3>
-        <span class="chip">${item.when}</span>
-      </div>
-      <p class="card-body">${item.desc}</p>
-      <div class="card-meta">
-        <span>👥 ${item.org}</span>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-// ------------------ GÖNÜLLÜ OL: Dinamik Etkinlik Aggregator ------------------
+// ------------------ GÖNÜLLÜ OL: API'SİZ BİLGİLENDİRME ------------------
 
 function initVolunteer() {
   const input = document.getElementById("vol-city-input");
@@ -495,52 +458,27 @@ function initVolunteer() {
 
   if (!input || !btn || !resultsDiv) return;
 
-  const handler = async () => {
-    const city = input.value.trim().toLowerCase();
+  const handler = () => {
+    const city = input.value.trim();
     if (!city) {
       resultsDiv.innerHTML = "<p class='prose'>Lütfen şehir adı yaz.</p>";
       return;
     }
 
-    resultsDiv.innerHTML = "<p class='prose'>Yükleniyor...</p>";
-
-    try {
-      const res = await fetch(`/api/events?city=${encodeURIComponent(city)}`);
-      const data = await res.json();
-
-      if (!data.events || data.events.length === 0) {
-        resultsDiv.innerHTML =
-          "<p class='prose'>Bu şehirde etkinlik bulunamadı.</p>";
-        return;
-      }
-
-      resultsDiv.innerHTML = data.events
-        .map(
-          (ev) => `
-          <article class="card" style="padding:1rem;">
-            <div class="card-header-row">
-              <h3 class="card-title">${ev.title}</h3>
-              <span class="chip">${ev.source.toUpperCase()}</span>
-            </div>
-            <p class="card-body">${ev.desc || ""}</p>
-            <p class="card-meta">📅 ${ev.when || "Tarih yok"}</p>
-            <p class="card-meta">👥 ${ev.org || "Bilinmiyor"}</p>
-            ${
-              ev.url
-                ? `<div class="card-actions" style="margin-top:0.5rem;">
-                    <a href="${ev.url}" target="_blank" class="btn">Etkinliğe Git</a>
-                  </div>`
-                : ""
-            }
-          </article>
-        `
-        )
-        .join("");
-    } catch (err) {
-      console.error(err);
-      resultsDiv.innerHTML =
-        "<p class='prose'>Sunucu hatası. Daha sonra tekrar dene.</p>";
-    }
+    // Burada artık hiçbir dış API çağrısı yok.
+    // Kullanıcıya "henüz planlanan etkinlik yok" mesajı veriyoruz.
+    resultsDiv.innerHTML = `
+      <article class="card" style="padding:1rem;">
+        <div class="card-header-row">
+          <h3 class="card-title">📍 ${city} için planlanan etkinlik bulunmuyor</h3>
+        </div>
+        <p class="card-body">
+          Şu anda <strong>${city}</strong> için sistemde kayıtlı bir gönüllü etkinliği yok.
+          Aşağıdaki <strong>Etkinlik Talep / Öneri Formu</strong>nu kullanarak
+          sahil/orman temizliği, atölye veya başka bir çevre etkinliği önerebilirsin.
+        </p>
+      </article>
+    `;
   };
 
   btn.addEventListener("click", handler);
@@ -549,18 +487,7 @@ function initVolunteer() {
   });
 }
 
-// DOMContentLoaded içinde şunu da ekle:
-document.addEventListener("DOMContentLoaded", async () => {
-  highlightActiveNav();
-  setYear();
-  await initNews();
-  initCategoriesPage();
-  initRecycling();
-  initVolunteer();
-  initEventRequestForm(); // 🔹 BUNU EKLE
-});
-
-// ...
+// ------------------ ETKİNLİK TALEP FORMU ------------------
 
 function initEventRequestForm() {
   const form = document.getElementById("event-request-form");
@@ -569,9 +496,13 @@ function initEventRequestForm() {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+
     if (msg) {
       msg.style.display = "block";
+      msg.textContent =
+        "Teşekkürler! Etkinlik talebin kaydedildi. Planlama aşamasında değerlendireceğiz.";
     }
+
     form.reset();
   });
 }
