@@ -450,57 +450,7 @@ async function handleRecyclingSearch(input, resultsDiv) {
   }
 }
 
-// ------------------ GÖNÜLLÜ OL: Etkinlikler ------------------
-
-const volunteerData = {
-  istanbul: [
-    {
-      title: "Kadıköy Sahil Temizliği",
-      desc: "Pazar sabahı 09:00'da sahil boyunca çöp toplama etkinliği.",
-      when: "Her ayın ilk pazarı",
-      org: "Yerel Çevre Gönüllüleri",
-    },
-    {
-      title: "Moda Parkı Yeşil Buluşma",
-      desc: "Ağaç dikimi, tohum topları ve kompost atölyesi.",
-      when: "Yaz döneminde her iki haftada bir",
-      org: "Yeşil Adımlar Kolektifi",
-    },
-  ],
-  ankara: [
-    {
-      title: "Eymir Gölü Kıyı Temizliği",
-      desc: "Göl çevresinde çöp toplama ve farkındalık yürüyüşü.",
-      when: "Bahar aylarında belirli hafta sonları",
-      org: "Ankara Doğa Dostları",
-    },
-  ],
-  izmir: [
-    {
-      title: "Karşıyaka Sahil Çöp Toplama Günü",
-      desc: "Gönüllülerle birlikte sahil hattı boyunca çöp toplama.",
-      when: "Her ayın son cumartesi günü",
-      org: "İzmir Çevre Gönüllüleri",
-    },
-  ],
-};
-
-function initVolunteer() {
-  const input = document.getElementById("vol-city-input");
-  const btn = document.getElementById("vol-city-search-btn");
-  const resultsDiv = document.getElementById("volunteer-results");
-  if (!input || !btn || !resultsDiv) return;
-
-  const handler = () => {
-    const city = (input.value || "").trim().toLowerCase();
-    renderVolunteer(city);
-  };
-
-  btn.addEventListener("click", handler);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handler();
-  });
-}
+// ------------------ GÖNÜLLÜ OL: Statik Etkinlikler (opsiyonel) ------------------
 
 function renderVolunteer(city) {
   const container = document.getElementById("volunteer-results");
@@ -512,7 +462,7 @@ function renderVolunteer(city) {
     return;
   }
 
-  const data = volunteerData[city];
+  const data = window.volunteerData ? window.volunteerData[city] : null;
   if (!data) {
     container.innerHTML =
       '<p class="prose">Bu şehir için henüz örnek gönüllü etkinliği eklenmedi.</p>';
@@ -533,5 +483,68 @@ function renderVolunteer(city) {
       </div>
     `;
     container.appendChild(card);
+  });
+}
+
+// ------------------ GÖNÜLLÜ OL: Dinamik Etkinlik Aggregator ------------------
+
+function initVolunteer() {
+  const input = document.getElementById("vol-city-input");
+  const btn = document.getElementById("vol-city-search-btn");
+  const resultsDiv = document.getElementById("volunteer-results");
+
+  if (!input || !btn || !resultsDiv) return;
+
+  const handler = async () => {
+    const city = input.value.trim().toLowerCase();
+    if (!city) {
+      resultsDiv.innerHTML = "<p class='prose'>Lütfen şehir adı yaz.</p>";
+      return;
+    }
+
+    resultsDiv.innerHTML = "<p class='prose'>Yükleniyor...</p>";
+
+    try {
+      const res = await fetch(`/api/events?city=${encodeURIComponent(city)}`);
+      const data = await res.json();
+
+      if (!data.events || data.events.length === 0) {
+        resultsDiv.innerHTML =
+          "<p class='prose'>Bu şehirde etkinlik bulunamadı.</p>";
+        return;
+      }
+
+      resultsDiv.innerHTML = data.events
+        .map(
+          (ev) => `
+          <article class="card" style="padding:1rem;">
+            <div class="card-header-row">
+              <h3 class="card-title">${ev.title}</h3>
+              <span class="chip">${ev.source.toUpperCase()}</span>
+            </div>
+            <p class="card-body">${ev.desc || ""}</p>
+            <p class="card-meta">📅 ${ev.when || "Tarih yok"}</p>
+            <p class="card-meta">👥 ${ev.org || "Bilinmiyor"}</p>
+            ${
+              ev.url
+                ? `<div class="card-actions" style="margin-top:0.5rem;">
+                    <a href="${ev.url}" target="_blank" class="btn">Etkinliğe Git</a>
+                  </div>`
+                : ""
+            }
+          </article>
+        `
+        )
+        .join("");
+    } catch (err) {
+      console.error(err);
+      resultsDiv.innerHTML =
+        "<p class='prose'>Sunucu hatası. Daha sonra tekrar dene.</p>";
+    }
+  };
+
+  btn.addEventListener("click", handler);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handler();
   });
 }
