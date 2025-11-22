@@ -128,36 +128,56 @@ app.get("/api/status", (req, res) => {
 });
 
 // ŞEHRE GÖRE GERİ DÖNÜŞÜM NOKTALARI ENDPOINTİ
-app.get('/api/recycling-points', async (req, res) => {
+// ŞEHRE GÖRE GERİ DÖNÜŞÜM NOKTALARI ENDPOINTİ
+app.get("/api/recycling-points", async (req, res) => {
   try {
     const city = req.query.city;
     if (!city) {
-      return res.status(400).json({ error: 'city parametresi gerekli' });
+      return res.status(400).json({ error: "city parametresi gerekli" });
     }
 
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-    const query = encodeURIComponent(`geri dönüşüm noktası ${city}`);
+    if (!apiKey) {
+      return res
+        .status(500)
+        .json({ error: "GOOGLE_MAPS_API_KEY tanımlı değil (.env kontrol et)" });
+    }
+
+    // Sorgu: İngilizce yazmak genelde daha iyi sonuç veriyor
+    const query = encodeURIComponent(`recycling point in ${city} Turkey`);
     const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&language=tr&key=${apiKey}`;
 
-    const response = await fetch(url);       // Node 18+’da global fetch var
+    const response = await fetch(url);
     const data = await response.json();
 
-    // Kullanıcıya sade bir liste döndürelim
-    const points = (data.results || []).map(place => ({
+    console.log("Google Places cevabı:", data);
+
+    // Google tarafı hata verdiyse
+    if (data.status !== "OK") {
+      return res.status(500).json({
+        error: `Google Places hatası: ${data.status}`,
+        status: data.status,
+        message: data.error_message || null,
+        points: [],
+      });
+    }
+
+    const points = (data.results || []).map((place) => ({
       name: place.name,
       address: place.formatted_address,
       rating: place.rating,
       lat: place.geometry?.location?.lat,
       lng: place.geometry?.location?.lng,
-      place_id: place.place_id
+      place_id: place.place_id,
     }));
 
-    res.json({ points });
+    res.json({ points, status: data.status });
   } catch (err) {
-    console.error('Places API hata:', err);
-    res.status(500).json({ error: 'Google Places API hatası' });
+    console.error("Places API hata:", err);
+    res.status(500).json({ error: "Google Places API hatası" });
   }
 });
+
 
 
 // En altta zaten vardır, sadece kontrol et:

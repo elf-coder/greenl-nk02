@@ -382,20 +382,23 @@ async function handleRecyclingSearch(input, resultsDiv) {
       `/api/recycling-points?city=${encodeURIComponent(city)}`
     );
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("API HTTP hata:", res.status, text);
-      resultsDiv.innerHTML =
-        '<p class="prose">Sunucu isteği başarısız oldu. Daha sonra tekrar dene.</p>';
-      return;
-    }
-
     const data = await res.json();
     console.log("Recycling API cevabı:", data);
 
-    // Eğer backend hata döndürdüyse
+    // HTTP hata
+    if (!res.ok) {
+      resultsDiv.innerHTML =
+        `<p class="prose">Sunucu isteği başarısız oldu (${res.status}).` +
+        (data.error ? ` Hata: ${data.error}` : "") +
+        `</p>`;
+      return;
+    }
+
+    // Backend özel hata döndürdüyse
     if (data.error) {
-      resultsDiv.innerHTML = `<p class="prose">Sunucu hatası: ${data.error}</p>`;
+      resultsDiv.innerHTML = `<p class="prose">Sunucu hatası: ${data.error}${
+        data.status ? " (" + data.status + ")" : ""
+      }</p>`;
       return;
     }
 
@@ -428,7 +431,8 @@ async function handleRecyclingSearch(input, resultsDiv) {
             <a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}"
                target="_blank"
                rel="noopener"
-               class="btn">
+               class="btn"
+               style="display:inline-block;">
               Haritada Aç
             </a>
           </div>
@@ -440,9 +444,9 @@ async function handleRecyclingSearch(input, resultsDiv) {
       )
       .join("");
   } catch (err) {
-    console.error("Recycling fetch hatası:", err);
+    console.error(err);
     resultsDiv.innerHTML =
-      '<p class="prose">Bir hata oluştu. Lütfen daha sonra tekrar dene.</p>';
+      "<p class='prose'>Bir hata oluştu. Lütfen daha sonra tekrar dene.</p>";
   }
 }
 
@@ -484,13 +488,12 @@ const volunteerData = {
 function initVolunteer() {
   const input = document.getElementById("vol-city-input");
   const btn = document.getElementById("vol-city-search-btn");
-  const container = document.getElementById("volunteer-results");
-
-  if (!input || !btn || !container) return;
+  const resultsDiv = document.getElementById("volunteer-results");
+  if (!input || !btn || !resultsDiv) return;
 
   const handler = () => {
     const city = (input.value || "").trim().toLowerCase();
-    renderVolunteer(city, container);
+    renderVolunteer(city);
   };
 
   btn.addEventListener("click", handler);
@@ -499,12 +502,13 @@ function initVolunteer() {
   });
 }
 
-function renderVolunteer(city, container) {
+function renderVolunteer(city) {
+  const container = document.getElementById("volunteer-results");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!city) {
-    container.innerHTML =
-      '<p class="prose">Lütfen önce bir şehir gir.</p>';
+    container.innerHTML = '<p class="prose">Lütfen önce bir şehir gir.</p>';
     return;
   }
 
