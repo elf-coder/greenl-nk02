@@ -982,3 +982,129 @@ html[data-page="volunteer"] .footer {
     padding: 1.35rem 1.15rem 1.3rem;
   }
 }
+
+/*****************************************
+ * GÖNÜLLÜ SAYFASI - ETKİNLİK ANKET KARTLARI
+ *****************************************/
+html[data-page="volunteer"] .event-poll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+html[data-page="volunteer"] .event-poll-card {
+  border-radius: 1.1rem;
+  padding: 0.9rem 0.95rem 0.85rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.75);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+html[data-page="volunteer"] .event-poll-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+html[data-page="volunteer"] .event-poll-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+html[data-page="volunteer"] .event-poll-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+html[data-page="volunteer"] .event-poll-pill {
+  font-size: 0.74rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+html[data-page="volunteer"] .event-poll-pill.event-type {
+  border-color: rgba(34, 197, 94, 0.7);
+  color: #bbf7d0;
+}
+
+html[data-page="volunteer"] .event-poll-pill.event-date {
+  border-style: dashed;
+  opacity: 0.9;
+}
+
+html[data-page="volunteer"] .event-poll-desc {
+  font-size: 0.86rem;
+  color: #e5f4ef;
+  opacity: 0.95;
+}
+
+/* Butonlar */
+html[data-page="volunteer"] .event-poll-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+html[data-page="volunteer"] .event-poll-actions .btn {
+  border-radius: 999px;
+  font-size: 0.85rem;
+  padding-block: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5f4ef;
+  box-shadow: none;
+}
+
+html[data-page="volunteer"] .event-poll-actions .btn-yes {
+  border-color: rgba(34, 197, 94, 0.7);
+}
+
+html[data-page="volunteer"] .event-poll-actions .btn-no {
+  border-color: rgba(248, 113, 113, 0.7);
+}
+
+html[data-page="volunteer"] .event-poll-actions .btn .badge {
+  font-size: 0.77rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* Aktif oy */
+html[data-page="volunteer"] .event-poll-actions .btn.active.btn-yes {
+  background: linear-gradient(135deg, #22c55e, #2dd4bf);
+  color: #022c22;
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45);
+}
+
+html[data-page="volunteer"] .event-poll-actions .btn.active.btn-no {
+  background: linear-gradient(135deg, #f97373, #fb7185);
+  color: #450a0a;
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.45);
+}
+
+html[data-page="volunteer"] .event-poll-note {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Mobil */
+@media (max-width: 640px) {
+  html[data-page="volunteer"] .event-poll-card {
+    padding-inline: 0.8rem;
+  }
+}

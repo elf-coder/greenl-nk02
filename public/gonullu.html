@@ -48,25 +48,23 @@
         </div>
         <div class="split">
           <div class="split-card">
-            <h2 class="section-title" style="font-size:1.05rem;">Henüz Planlanan Etkinliğimiz Yok</h2>
-            <p class="prose">
-              GreenLink’in kendi gönüllü etkinlik takvimi <strong>planlama aşamasında</strong>.
-              Şu anda sistemde listelenen hazır bir etkinlik bulunmuyor.
-            </p>
-            <p class="prose">
-              Ama iyi haber şu: <strong>etkinlikleri sen</strong> planlayabilirsin.
-              Aşağıdaki formdan şehrinde yapmak istediğin sahil/orman temizliği,
-              atölye, söyleşi veya başka bir çevre etkinliğini bize gönder;
-              biz de GreenLink topluluğunda öne çıkaralım. 🌍
-            </p>
-            <p class="prose">
-              Kısacası: “Şehrinizde henüz planlanan etkinliğiniz yok.”<br />
-              <strong>İlk etkinliği sen başlat!</strong>
-            </p>
-            <a href="#event-request" class="btn" style="margin-top:0.75rem;">
-              Etkinlik Öner &amp; Anket Formuna Git
-            </a>
-          </div>
+  <h2 class="section-title" style="font-size:1.05rem;">Planlanan Etkinlikler Anketi</h2>
+  <p class="prose" id="events-intro">
+    Aşağıda topluluktan gelen çevre etkinliklerini görüyorsun. Her etkinlik için
+    <strong>“Katılıyorum”</strong> veya <strong>“Katılmıyorum”</strong> diyerek ankete katkı verebilirsin.
+    Oylar sadece istatistik amaçlıdır.
+  </p>
+
+  <!-- ETKİNLİK LİSTESİ BURAYA JS İLE DOLDURULACAK -->
+  <div id="planned-events" class="event-poll-list"></div>
+
+  <!-- Hiç etkinlik yoksa gösterilecek mesaj -->
+  <p class="prose" id="no-events-message" style="display:none;">
+    Şu anda ankete açılmış bir etkinlik görünmüyor.
+    İlk etkinliği önermek için aşağıdaki formu doldurabilirsin. 🌿
+  </p>
+</div>
+
 
           <div class="split-card">
             <h2 class="section-title" style="font-size:1.05rem;">Gönüllü Olmanın Hafif Kılavuzu</h2>

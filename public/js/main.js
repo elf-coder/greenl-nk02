@@ -506,3 +506,157 @@ function initEventRequestForm() {
     form.reset();
   });
 }
+
+/*************************************************
+ * GÖNÜLLÜ SAYFASI: PLANLANAN ETKİNLİK ANKETİ
+ *************************************************/
+
+// ÖRNEK: Back-end'den veya başka bir js dosyasından gelen veri yerine bunu kullanıyorsun.
+// İstersen burayı kendi verinle doldurabilirsin / API'den geleni buraya atayabilirsin.
+const plannedEvents = [
+  {
+    id: "evt-1",
+    title: "Kadıköy Sahil Temizliği",
+    city: "İstanbul",
+    date: "14 Aralık 2025 – 10.00",
+    type: "Sahil Temizliği",
+    description: "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
+  },
+  {
+    id: "evt-2",
+    title: "Şehirde Atıksız Yaşam Atölyesi",
+    city: "Ankara",
+    date: "21 Aralık 2025 – 14.00",
+    type: "Atölye / Eğitim",
+    description: "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
+  },
+  {
+    id: "evt-3",
+    title: "Deniz Kirliliği Farkındalık Yürüyüşü",
+    city: "İzmir",
+    date: "28 Aralık 2025 – 16.00",
+    type: "Farkındalık Kampanyası",
+    description: "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
+  },
+];
+
+// Yerel depolama anahtarı (aynı etkinliğe tekrar tekrar oy vermeyi engellemek için)
+const VOTE_STORAGE_KEY = "greenlink_event_votes";
+
+function loadEventVotes() {
+  try {
+    const raw = localStorage.getItem(VOTE_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveEventVotes(votes) {
+  try {
+    localStorage.setItem(VOTE_STORAGE_KEY, JSON.stringify(votes));
+  } catch {
+    // sessizce geç
+  }
+}
+
+function renderPlannedEventsPoll() {
+  const page = document.documentElement.dataset.page;
+  if (page !== "volunteer") return; // sadece gönüllü sayfasında çalışsın
+
+  const listEl = document.getElementById("planned-events");
+  const noEventsEl = document.getElementById("no-events-message");
+  const introEl = document.getElementById("events-intro");
+  if (!listEl || !noEventsEl || !introEl) return;
+
+  if (!plannedEvents || plannedEvents.length === 0) {
+    // hiç etkinlik yoksa mesajı göster
+    noEventsEl.style.display = "block";
+    introEl.style.display = "none";
+    return;
+  }
+
+  // Etkinlik var -> listeyi doldur
+  noEventsEl.style.display = "none";
+  introEl.style.display = "block";
+
+  const storedVotes = loadEventVotes();
+
+  plannedEvents.forEach((ev) => {
+    const wrapper = document.createElement("article");
+    wrapper.className = "event-poll-card";
+
+    // Varsayılan oy sayıları (sadece görsel istatistik)
+    const yesCount = storedVotes[ev.id]?.yes ?? 0;
+    const noCount = storedVotes[ev.id]?.no ?? 0;
+    const userChoice = storedVotes[ev.id]?.choice ?? null;
+
+    wrapper.innerHTML = `
+      <div class="event-poll-main">
+        <h3 class="event-poll-title">${ev.title}</h3>
+        <div class="event-poll-meta">
+          <span class="event-poll-pill">${ev.city}</span>
+          <span class="event-poll-pill event-type">${ev.type}</span>
+          <span class="event-poll-pill event-date">${ev.date}</span>
+        </div>
+        <p class="event-poll-desc">${ev.description}</p>
+      </div>
+      <div class="event-poll-actions">
+        <button class="btn btn-yes" data-action="yes">Katılıyorum <span class="badge" data-count="yes">${yesCount}</span></button>
+        <button class="btn btn-no" data-action="no">Katılmıyorum <span class="badge" data-count="no">${noCount}</span></button>
+      </div>
+      <p class="event-poll-note">
+        Oyların sadece topluluk ilgisini ölçmek içindir; otomatik kayıt yerine geçmez.
+      </p>
+    `;
+
+    listEl.appendChild(wrapper);
+
+    const yesBtn = wrapper.querySelector('[data-action="yes"]');
+    const noBtn = wrapper.querySelector('[data-action="no"]');
+    const yesBadge = wrapper.querySelector('[data-count="yes"]');
+    const noBadge = wrapper.querySelector('[data-count="no"]');
+
+    // Kullanıcının önceki seçimini buton stiline yansıt
+    if (userChoice === "yes") {
+      yesBtn.classList.add("active");
+    } else if (userChoice === "no") {
+      noBtn.classList.add("active");
+    }
+
+    function handleVote(choice) {
+      let votes = loadEventVotes();
+      const current = votes[ev.id] || { yes: yesCount, no: noCount, choice: null };
+
+      // Aynı seçeneğe tekrar tıklarsa hiçbir şey değiştirme (istersen burayı toggle yapabilirsin)
+      if (current.choice === choice) return;
+
+      // Önce eski oyu geri al
+      if (current.choice === "yes") current.yes = Math.max(0, current.yes - 1);
+      if (current.choice === "no") current.no = Math.max(0, current.no - 1);
+
+      // Yeni oyu ekle
+      if (choice === "yes") current.yes += 1;
+      if (choice === "no") current.no += 1;
+      current.choice = choice;
+
+      votes[ev.id] = current;
+      saveEventVotes(votes);
+
+      // UI güncelle
+      yesBadge.textContent = current.yes;
+      noBadge.textContent = current.no;
+
+      yesBtn.classList.toggle("active", choice === "yes");
+      noBtn.classList.toggle("active", choice === "no");
+
+      // Buraya istersen backend'e POST atan fetch ekleyebilirsin:
+      // fetch("/api/event-vote", { method:"POST", body: JSON.stringify({ id: ev.id, choice }) });
+    }
+
+    yesBtn.addEventListener("click", () => handleVote("yes"));
+    noBtn.addEventListener("click", () => handleVote("no"));
+  });
+}
+
+document.addEventListener("DOMContentLoaded", renderPlannedEventsPoll);
