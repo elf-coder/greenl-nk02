@@ -1,4 +1,4 @@
-// Ana JS: navbar active durumu, yıl, haberler ve kategoriler
+// Ana JS: navbar active durumu, yıl, haberler, kategoriler ve dinamik geri dönüşüm noktaları
 
 document.addEventListener("DOMContentLoaded", async () => {
   highlightActiveNav();
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 2) Sonra bu haberlere göre diğer bölümler çalışsın
   initCategoriesPage();
-  initRecycling();
+  initRecycling();   // <-- Google Maps Places API ile çalışan dinamik geri dönüşüm
   initVolunteer();
   // Forum artık Supabase tarafında forum.js ile yönetiliyor,
   // burada initForum çağırmıyoruz.
@@ -349,114 +349,93 @@ function initCategoriesPage() {
   });
 }
 
-// ------------------ EYLEM REHBERİ / GÖNÜLLÜ ------------------
-
-// ----- Eylem rehberi: geri dönüşüm noktaları -----
-
-const recyclingData = {
-  istanbul: [
-    {
-      type: "Plastik / Ambalaj",
-      name: "Kadıköy Plastik Atık Noktası",
-      desc: "Mahalle bazlı plastik ve ambalaj atığı konteyneri.",
-      address: "Moda Caddesi, Kadıköy",
-      icon: "♻️",
-    },
-    {
-      type: "Pil",
-      name: "Beşiktaş Pil Toplama Kutusu",
-      desc: "Küçük el tipi piller için yeşil kutu.",
-      address: "Beşiktaş Meydanı, Çevre Bilgilendirme Çadırı",
-      icon: "🔋",
-    },
-    {
-      type: "Atık Yağ",
-      name: "Atık Yağ Teslim Noktası",
-      desc: "Evsel atık yağları teslim edebileceğin resmi nokta.",
-      address: "Üsküdar Belediye Binası önü",
-      icon: "🧴",
-    },
-  ],
-  ankara: [
-    {
-      type: "Plastik / Kağıt",
-      name: "Kızılay Geri Dönüşüm Noktası",
-      desc: "Karışık ambalaj (plastik, kağıt, metal) konteyneri.",
-      address: "Kızılay Meydanı, Güvenpark yanı",
-      icon: "♻️",
-    },
-    {
-      type: "Pil",
-      name: "Pil Toplama Kutusu",
-      desc: "Küçük piller için kırmızı kutu.",
-      address: "Çankaya Belediyesi hizmet binası",
-      icon: "🔋",
-    },
-  ],
-  izmir: [
-    {
-      type: "Plastik / Cam",
-      name: "Karşıyaka Atık Noktası",
-      desc: "Cam ve plastik şişe odaklı geri dönüşüm ünitesi.",
-      address: "Karşıyaka sahil bandı",
-      icon: "♻️",
-    },
-    {
-      type: "Atık Yağ",
-      name: "Evsel Atık Yağ Toplama",
-      desc: "Belirli günlerde mobil atık yağ aracı.",
-      address: "Konak Meydanı (hafta içi belirli günler)",
-      icon: "🧴",
-    },
-  ],
-};
+// ------------------ EYLEM REHBERİ: DİNAMİK GERİ DÖNÜŞÜM NOKTALARI ------------------
 
 function initRecycling() {
   const input = document.getElementById("city-input");
   const btn = document.getElementById("city-search-btn");
-  if (!input || !btn) return;
+  const resultsDiv = document.getElementById("recycling-results");
 
-  btn.addEventListener("click", () => {
-    const city = (input.value || "").trim().toLowerCase();
-    renderRecycling(city);
+  // Sadece eylem.html'de var, diğer sayfalarda sessizce çık
+  if (!input || !btn || !resultsDiv) return;
+
+  const runSearch = () => handleRecyclingSearch(input, resultsDiv);
+
+  btn.addEventListener("click", runSearch);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      runSearch();
+    }
   });
 }
 
-function renderRecycling(city) {
-  const container = document.getElementById("recycling-results");
-  if (!container) return;
-  container.innerHTML = "";
-
+async function handleRecyclingSearch(inputEl, resultsDiv) {
+  const city = inputEl.value.trim();
   if (!city) {
-    container.innerHTML = '<p class="prose">Lütfen önce bir şehir gir.</p>';
+    resultsDiv.innerHTML = '<p class="prose">Lütfen bir şehir adı yazın.</p>';
     return;
   }
 
-  const data = recyclingData[city];
-  if (!data) {
-    container.innerHTML =
-      "<p class=\"prose\">Bu şehir için henüz örnek veri yok. Daha sonra JSON'a ekleyebilirsin.</p>";
-    return;
-  }
+  resultsDiv.innerHTML = '<p class="prose">Yükleniyor...</p>';
 
-  data.forEach((item) => {
-    const card = document.createElement("article");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-header-row">
-        <h3 class="card-title">${item.icon} ${item.name}</h3>
-        <span class="chip">${item.type}</span>
-      </div>
-      <p class="card-body">${item.desc}</p>
-      <div class="card-meta">
-        <span>📍 ${item.address}</span>
-      </div>
-    `;
-    container.appendChild(card);
-  });
+  try {
+    const res = await fetch(
+      `/api/recycling-points?city=${encodeURIComponent(city)}`
+    );
+
+    if (!res.ok) {
+      console.error("recycling-points hata:", res.status);
+      resultsDiv.innerHTML =
+        "<p class=\"prose\">Şu anda geri dönüşüm noktaları alınamadı. Daha sonra tekrar dene.</p>";
+      return;
+    }
+
+    const data = await res.json();
+
+    if (!data.points || data.points.length === 0) {
+      resultsDiv.innerHTML =
+        "<p class=\"prose\">Bu şehirde geri dönüşüm noktası bulunamadı.</p>";
+      return;
+    }
+
+    resultsDiv.innerHTML = data.points
+      .map(
+        (p) => `
+        <article class="card">
+          <div class="card-header-row">
+            <h3 class="card-title">${p.name}</h3>
+            ${
+              p.rating
+                ? `<span class="chip">Puan: ${p.rating}</span>`
+                : ""
+            }
+          </div>
+          <p class="card-body" style="margin-bottom:0.4rem;">
+            ${p.address || "Adres bilgisi yok"}
+          </p>
+          <div class="card-meta">
+            ${
+              p.lat && p.lng
+                ? `<a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}"
+                     target="_blank" rel="noopener" class="card-link">
+                     Haritada Aç
+                     <span class="card-link-icon">↗</span>
+                   </a>`
+                : "<span>Konum koordinatı yok</span>"
+            }
+          </div>
+        </article>
+      `
+      )
+      .join("");
+  } catch (err) {
+    console.error(err);
+    resultsDiv.innerHTML =
+      "<p class=\"prose\">Bir hata oluştu. Daha sonra tekrar dene.</p>";
+  }
 }
 
-// ----- Gönüllü Ol: etkinlikler -----
+// ------------------ GÖNÜLLÜ OL: ETKİNLİKLER ------------------
 
 const volunteerData = {
   istanbul: [
@@ -494,17 +473,25 @@ const volunteerData = {
 function initVolunteer() {
   const input = document.getElementById("vol-city-input");
   const btn = document.getElementById("vol-city-search-btn");
-  if (!input || !btn) return;
+  const results = document.getElementById("volunteer-results");
 
-  btn.addEventListener("click", () => {
+  // Sadece gonullu.html'de var
+  if (!input || !btn || !results) return;
+
+  const runSearch = () => {
     const city = (input.value || "").trim().toLowerCase();
-    renderVolunteer(city);
+    renderVolunteer(city, results);
+  };
+
+  btn.addEventListener("click", runSearch);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      runSearch();
+    }
   });
 }
 
-function renderVolunteer(city) {
-  const container = document.getElementById("volunteer-results");
-  if (!container) return;
+function renderVolunteer(city, container) {
   container.innerHTML = "";
 
   if (!city) {

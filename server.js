@@ -127,6 +127,41 @@ app.get("/api/status", (req, res) => {
   res.json({ ok: true, name: "GreenLink", version: "1.0.0" });
 });
 
+// ŞEHRE GÖRE GERİ DÖNÜŞÜM NOKTALARI ENDPOINTİ
+app.get('/api/recycling-points', async (req, res) => {
+  try {
+    const city = req.query.city;
+    if (!city) {
+      return res.status(400).json({ error: 'city parametresi gerekli' });
+    }
+
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const query = encodeURIComponent(`geri dönüşüm noktası ${city}`);
+    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&language=tr&key=${apiKey}`;
+
+    const response = await fetch(url);       // Node 18+’da global fetch var
+    const data = await response.json();
+
+    // Kullanıcıya sade bir liste döndürelim
+    const points = (data.results || []).map(place => ({
+      name: place.name,
+      address: place.formatted_address,
+      rating: place.rating,
+      lat: place.geometry?.location?.lat,
+      lng: place.geometry?.location?.lng,
+      place_id: place.place_id
+    }));
+
+    res.json({ points });
+  } catch (err) {
+    console.error('Places API hata:', err);
+    res.status(500).json({ error: 'Google Places API hatası' });
+  }
+});
+
+// En altta zaten vardır, sadece kontrol et:
+
+
 app.listen(PORT, () => {
   console.log(`GreenLink sunucusu ${PORT} portunda çalışıyor`);
 });
