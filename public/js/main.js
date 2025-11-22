@@ -548,3 +548,30 @@ function initVolunteer() {
     if (e.key === "Enter") handler();
   });
 }
+
+// DOMContentLoaded içinde şunu da ekle:
+document.addEventListener("DOMContentLoaded", async () => {
+  highlightActiveNav();
+  setYear();
+  await initNews();
+  initCategoriesPage();
+  initRecycling();
+  initVolunteer();
+  initEventRequestForm(); // 🔹 BUNU EKLE
+});
+
+// ...
+
+function initEventRequestForm() {
+  const form = document.getElementById("event-request-form");
+  const msg = document.getElementById("event-request-message");
+  if (!form) return;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (msg) {
+      msg.style.display = "block";
+    }
+    form.reset();
+  });
+}
