@@ -1,4 +1,4 @@
-// Ana JS: navbar active durumu, yıl, haberler, kategoriler ve dinamik geri dönüşüm noktaları
+// Ana JS: navbar active durumu, yıl, haberler, kategoriler, eylem, gönüllü
 
 document.addEventListener("DOMContentLoaded", async () => {
   highlightActiveNav();
@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 2) Sonra bu haberlere göre diğer bölümler çalışsın
   initCategoriesPage();
-  initRecycling();   // <-- Google Maps Places API ile çalışan dinamik geri dönüşüm
-  initVolunteer();
+  initRecycling();   // Eylem rehberi: Google Maps üzerinden geri dönüşüm noktaları
+  initVolunteer();   // Gönüllü ol sayfası
   // Forum artık Supabase tarafında forum.js ile yönetiliyor,
   // burada initForum çağırmıyoruz.
 });
@@ -349,30 +349,29 @@ function initCategoriesPage() {
   });
 }
 
-// ------------------ EYLEM REHBERİ: DİNAMİK GERİ DÖNÜŞÜM NOKTALARI ------------------
+// ------------------ EYLEM REHBERİ: Google Maps Places API ------------------
 
 function initRecycling() {
   const input = document.getElementById("city-input");
   const btn = document.getElementById("city-search-btn");
   const resultsDiv = document.getElementById("recycling-results");
 
-  // Sadece eylem.html'de var, diğer sayfalarda sessizce çık
+  // Sadece eylem.html sayfasında var; yoksa hiç çalışmasın
   if (!input || !btn || !resultsDiv) return;
 
-  const runSearch = () => handleRecyclingSearch(input, resultsDiv);
+  const handler = () => handleRecyclingSearch(input, resultsDiv);
 
-  btn.addEventListener("click", runSearch);
+  btn.addEventListener("click", handler);
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      runSearch();
-    }
+    if (e.key === "Enter") handler();
   });
 }
 
-async function handleRecyclingSearch(inputEl, resultsDiv) {
-  const city = inputEl.value.trim();
+async function handleRecyclingSearch(input, resultsDiv) {
+  const city = input.value.trim();
+
   if (!city) {
-    resultsDiv.innerHTML = '<p class="prose">Lütfen bir şehir adı yazın.</p>';
+    resultsDiv.innerHTML = '<p class="prose">Lütfen önce bir şehir adı yaz.</p>';
     return;
   }
 
@@ -384,58 +383,70 @@ async function handleRecyclingSearch(inputEl, resultsDiv) {
     );
 
     if (!res.ok) {
-      console.error("recycling-points hata:", res.status);
+      const text = await res.text();
+      console.error("API HTTP hata:", res.status, text);
       resultsDiv.innerHTML =
-        "<p class=\"prose\">Şu anda geri dönüşüm noktaları alınamadı. Daha sonra tekrar dene.</p>";
+        '<p class="prose">Sunucu isteği başarısız oldu. Daha sonra tekrar dene.</p>';
       return;
     }
 
     const data = await res.json();
+    console.log("Recycling API cevabı:", data);
 
-    if (!data.points || data.points.length === 0) {
-      resultsDiv.innerHTML =
-        "<p class=\"prose\">Bu şehirde geri dönüşüm noktası bulunamadı.</p>";
+    // Eğer backend hata döndürdüyse
+    if (data.error) {
+      resultsDiv.innerHTML = `<p class="prose">Sunucu hatası: ${data.error}</p>`;
       return;
     }
 
-    resultsDiv.innerHTML = data.points
+    const points = data.points || [];
+    if (!points.length) {
+      resultsDiv.innerHTML =
+        '<p class="prose">Bu şehirde geri dönüşüm noktası bulunamadı.</p>';
+      return;
+    }
+
+    resultsDiv.innerHTML = points
       .map(
         (p) => `
-        <article class="card">
-          <div class="card-header-row">
-            <h3 class="card-title">${p.name}</h3>
-            ${
-              p.rating
-                ? `<span class="chip">Puan: ${p.rating}</span>`
-                : ""
-            }
+      <article class="card" style="padding:1rem;">
+        <div class="card-header-row">
+          <h3 class="card-title" style="margin:0 0 0.4rem 0;">${p.name}</h3>
+        </div>
+        <p class="card-body" style="margin:0; opacity:0.85;">
+          ${p.address || "Adres bilgisi yok"}
+        </p>
+        ${
+          p.rating
+            ? `<p class="card-meta" style="margin:0.2rem 0 0; font-size:0.85rem;">Puan: ${p.rating}</p>`
+            : ""
+        }
+        ${
+          p.lat && p.lng
+            ? `
+          <div class="card-actions" style="margin-top:0.6rem;">
+            <a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}"
+               target="_blank"
+               rel="noopener"
+               class="btn">
+              Haritada Aç
+            </a>
           </div>
-          <p class="card-body" style="margin-bottom:0.4rem;">
-            ${p.address || "Adres bilgisi yok"}
-          </p>
-          <div class="card-meta">
-            ${
-              p.lat && p.lng
-                ? `<a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}"
-                     target="_blank" rel="noopener" class="card-link">
-                     Haritada Aç
-                     <span class="card-link-icon">↗</span>
-                   </a>`
-                : "<span>Konum koordinatı yok</span>"
-            }
-          </div>
-        </article>
-      `
+        `
+            : ""
+        }
+      </article>
+    `
       )
       .join("");
   } catch (err) {
-    console.error(err);
+    console.error("Recycling fetch hatası:", err);
     resultsDiv.innerHTML =
-      "<p class=\"prose\">Bir hata oluştu. Daha sonra tekrar dene.</p>";
+      '<p class="prose">Bir hata oluştu. Lütfen daha sonra tekrar dene.</p>';
   }
 }
 
-// ------------------ GÖNÜLLÜ OL: ETKİNLİKLER ------------------
+// ------------------ GÖNÜLLÜ OL: Etkinlikler ------------------
 
 const volunteerData = {
   istanbul: [
@@ -473,21 +484,18 @@ const volunteerData = {
 function initVolunteer() {
   const input = document.getElementById("vol-city-input");
   const btn = document.getElementById("vol-city-search-btn");
-  const results = document.getElementById("volunteer-results");
+  const container = document.getElementById("volunteer-results");
 
-  // Sadece gonullu.html'de var
-  if (!input || !btn || !results) return;
+  if (!input || !btn || !container) return;
 
-  const runSearch = () => {
+  const handler = () => {
     const city = (input.value || "").trim().toLowerCase();
-    renderVolunteer(city, results);
+    renderVolunteer(city, container);
   };
 
-  btn.addEventListener("click", runSearch);
+  btn.addEventListener("click", handler);
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      runSearch();
-    }
+    if (e.key === "Enter") handler();
   });
 }
 
@@ -495,14 +503,15 @@ function renderVolunteer(city, container) {
   container.innerHTML = "";
 
   if (!city) {
-    container.innerHTML = '<p class="prose">Lütfen önce bir şehir gir.</p>';
+    container.innerHTML =
+      '<p class="prose">Lütfen önce bir şehir gir.</p>';
     return;
   }
 
   const data = volunteerData[city];
   if (!data) {
     container.innerHTML =
-      "<p class=\"prose\">Bu şehir için henüz örnek gönüllü etkinliği eklenmedi.</p>";
+      '<p class="prose">Bu şehir için henüz örnek gönüllü etkinliği eklenmedi.</p>';
     return;
   }
 
@@ -522,4 +531,3 @@ function renderVolunteer(city, container) {
     container.appendChild(card);
   });
 }
-
