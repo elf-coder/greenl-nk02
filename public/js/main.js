@@ -606,7 +606,7 @@ function renderPlannedEventsPoll() {
         <button class="btn btn-no" data-action="no">Katılmıyorum <span class="badge" data-count="no">${noCount}</span></button>
       </div>
       <p class="event-poll-note">
-        Oyların sadece topluluk ilgisini ölçmek içindir; otomatik kayıt yerine geçmez.
+        Oylar sadece topluluk ilgisini ölçmek içindir; otomatik kayıt yerine geçmez.
       </p>
     `;
 
