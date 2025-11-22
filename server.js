@@ -99,118 +99,111 @@ app.get("/api/recycling-points", async (req, res) => {
 });
 
 
-// ---------------------------------------------------------
+// -----------------------------------------------
 //  TÜRKİYE ETKİNLİK AGGREGATOR
-//  Eventbrite + İstanbul(İBB) + Ankara(ABB) + İzmir(İZBB)
-//  *** Meetup tamamen kaldırıldı ***
-// ---------------------------------------------------------
+//  İBB + ABB + İZBB + Eventbrite
+// -----------------------------------------------
+
 app.get("/api/events", async (req, res) => {
   const city = (req.query.city || "").toLowerCase();
-  if (!city) return res.status(400).json({ error: "city parametresi gerekli" });
-
   const results = [];
 
-  try {
-    // EVENTBRITE
-    const EB_TOKEN = process.env.EVENTBRITE_TOKEN;
-    if (EB_TOKEN) {
-      const url =
-        `https://www.eventbriteapi.com/v3/events/search/` +
-        `?q=environment&location.address=${encodeURIComponent(city)}`;
+  if (!city) {
+    return res.status(400).json({ error: "city parametresi gerekli" });
+  }
 
-      const ebResp = await fetch(url, {
-        headers: { Authorization: `Bearer ${EB_TOKEN}` },
+  try {
+    // 1) EVENTBRITE
+    const EB_TOKEN = process.env.EVENTBRITE_TOKEN;
+
+    if (EB_TOKEN) {
+      const ebUrl =
+        `https://www.eventbriteapi.com/v3/events/search/?q=environment&location.address=${encodeURIComponent(city)}`;
+
+      const ebResp = await fetch(ebUrl, {
+        headers: { Authorization: `Bearer ${EB_TOKEN}` }
       });
       const ebJson = await ebResp.json();
 
       if (ebJson.events) {
-        ebJson.events.forEach(ev =>
+        ebJson.events.forEach(e =>
           results.push({
             source: "eventbrite",
-            title: ev.name?.text,
-            desc: ev.description?.text,
-            when: ev.start?.local,
-            org: ev.organization_id,
-            url: ev.url,
+            title: e.name?.text,
+            desc: e.description?.text || "",
+            when: e.start?.local || "",
+            org: e.organization_id,
+            url: e.url
           })
         );
       }
     }
 
-    // İBB — İstanbul
+    // 2) İBB (İstanbul)
     if (city === "istanbul") {
       const ibbURL =
         "https://data.ibb.gov.tr/api/3/action/datastore_search?resource_id=adf7f776-cedd-4b96-878f-4a8f564c64b9";
+      const ibbResp = await fetch(ibbURL);
+      const ibbJson = await ibbResp.json();
 
-      const r = await fetch(ibbURL);
-      const j = await r.json();
-
-      if (j?.result?.records) {
-        j.result.records.forEach(ev =>
+      if (ibbJson?.result?.records) {
+        ibbJson.result.records.forEach(ev =>
           results.push({
             source: "ibb",
             title: ev.etkinlik_adi,
-            desc: ev.aciklama,
+            desc: ev.aciklama || "",
             when: ev.etkinlik_tarihi,
             org: ev.organizasyon || "İBB",
-            url: ev.link,
+            url: ev.link || ""
           })
         );
       }
     }
 
-    // ABB — Ankara
+    // 3) ABB (Ankara)
     if (city === "ankara") {
       const abbURL =
         "https://acikveri.ankara.bel.tr/api/3/action/datastore_search?resource_id=8b920a81-9c35-4090-be4e-94a3e3fad100";
+      const abbResp = await fetch(abbURL);
+      const abbJson = await abbResp.json();
 
-      const r = await fetch(abbURL);
-      const j = await r.json();
-
-      if (j?.result?.records) {
-        j.result.records.forEach(ev =>
+      if (abbJson?.result?.records) {
+        abbJson.result.records.forEach(ev =>
           results.push({
             source: "abb",
             title: ev.EtkinlikAdi,
             desc: ev.EtkinlikAciklamasi,
             when: ev.EtkinlikBaslangicTarihi,
-            org: ev.Duzenleyen,
-            url: ev.Link,
+            org: ev.Duzenleyen || "Ankara Büyükşehir",
+            url: ev.Link || ""
           })
         );
       }
     }
 
-    // İZBB — İzmir
+    // 4) İZBB (İzmir)
     if (city === "izmir") {
-      const izURL = "https://acikveri.bizizmir.com/api/data/etkinlik";
+      const izmirURL = "https://acikveri.bizizmir.com/api/data/etkinlik";
+      const izResp = await fetch(izmirURL);
+      const izJson = await izResp.json();
 
-      const r = await fetch(izURL);
-      const j = await r.json();
-
-      if (Array.isArray(j)) {
-        j.forEach(ev =>
+      if (Array.isArray(izJson)) {
+        izJson.forEach(ev =>
           results.push({
             source: "izmir",
             title: ev.etkinlikAdi,
-            desc: ev.detay,
+            desc: ev.detay || "",
             when: ev.baslangicTarihi,
-            org: ev.duzenleyen,
-            url: ev.kaynak,
+            org: ev.duzenleyen || "İzmir Büyükşehir",
+            url: ev.kaynak || ""
           })
         );
       }
     }
 
-    res.json({ events: results });
+    return res.json({ events: results });
   } catch (err) {
     console.error("Etkinlik API hatası:", err);
     res.status(500).json({ error: "API birleştirme hatası" });
   }
-});
-
-
-// ---------------------------------------------------------
-app.listen(PORT, () => {
-  console.log(`GreenLink sunucusu ${PORT} portunda çalışıyor`);
 });
