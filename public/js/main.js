@@ -500,7 +500,7 @@ function initEventRequestForm() {
     if (msg) {
       msg.style.display = "block";
       msg.textContent =
-        "Teşekkürler! Etkinlik talebin kaydedildi. Planlama aşamasında değerlendireceğiz.";
+        "Teşekkürler! Etkinlik talebin kaydedildi. Onaydan Sonra Ankete Sunacağız.";
     }
 
     form.reset();
