@@ -522,3 +522,4 @@ function renderVolunteer(city, container) {
     container.appendChild(card);
   });
 }
+
