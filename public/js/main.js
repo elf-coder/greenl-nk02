@@ -489,6 +489,8 @@ function initVolunteer() {
 
 // ------------------ ETKİNLİK TALEP FORMU ------------------
 
+// ------------------ ETKİNLİK TALEP FORMU ------------------
+
 function initEventRequestForm() {
   const form = document.getElementById("event-request-form");
   const msg = document.getElementById("event-request-message");
@@ -503,53 +505,42 @@ function initEventRequestForm() {
     }
 
     const formData = new FormData(form);
-    const motivations = [];
-    form
-      .querySelectorAll('input[name="motivation"]:checked')
-      .forEach((cb) => motivations.push(cb.value));
-
     const payload = {
-      name: (formData.get("name") || "").toString().trim(),
-      email: (formData.get("email") || "").toString().trim(),
-      city: (formData.get("city") || "").toString().trim(),
+      name: (formData.get("name") || "").trim(),
+      email: (formData.get("email") || "").trim(),
+      city: (formData.get("city") || "").trim(),
       type: formData.get("type") || "",
-      date: (formData.get("date") || "").toString().trim(),
+      date: (formData.get("date") || "").trim(),
       people: formData.get("people")
         ? Number(formData.get("people"))
         : null,
-      message: (formData.get("message") || "").toString().trim(),
-      motivation: motivations,
+      message: (formData.get("message") || "").trim(),
+      motivation: formData.getAll("motivation"),
     };
 
     try {
       const res = await fetch("/api/event-request", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || "Sunucu hatası");
+      if (!res.ok) {
+        throw new Error("HTTP " + res.status);
       }
 
       if (msg) {
         msg.style.display = "block";
         msg.textContent =
-          data.message ||
-          "Teşekkürler! Etkinlik talebin kaydedildi. Onaydan sonra ankete eklenebilir. 🌿";
+          "Teşekkürler! Etkinlik talebin kaydedildi. Onaydan sonra ankete eklemeye çalışacağız. 🌿";
       }
-
       form.reset();
     } catch (err) {
-      console.error("Event request error:", err);
+      console.error("Form gönderim hatası:", err);
       if (msg) {
         msg.style.display = "block";
         msg.textContent =
-          "Üzgünüz, bir hata oluştu. Lütfen daha sonra tekrar dene.";
+          "Üzgünüz, form gönderilirken bir hata oluştu. Lütfen daha sonra tekrar dene.";
       }
     }
   });
@@ -560,7 +551,12 @@ function initEventRequestForm() {
  *************************************************/
 
 // Front-end için fallback veri (API bozulsun diye)
-const defaultPlannedEvents = [
+/*************************************************
+ * GÖNÜLLÜ SAYFASI: PLANLANAN ETKİNLİK ANKETİ
+ *************************************************/
+
+// Backend down olursa diye, sadece başlık/metin fallback'i:
+const plannedEventsFallback = [
   {
     id: "evt-1",
     title: "Kadıköy Sahil Temizliği",
@@ -590,7 +586,7 @@ const defaultPlannedEvents = [
   },
 ];
 
-// Yerel depolama anahtarı (aynı etkinliğe tekrar tekrar oy vermeyi engellemek için)
+// Yerel depolama anahtarı (aynı cihazdan tekrar oy verme kontrolü)
 const VOTE_STORAGE_KEY = "greenlink_event_votes";
 
 function loadEventVotes() {
@@ -612,30 +608,33 @@ function saveEventVotes(votes) {
 
 async function renderPlannedEventsPoll() {
   const page = document.documentElement.dataset.page;
-  if (page !== "volunteer") return; // sadece gönüllü sayfasında çalışsın
+  if (page !== "volunteer") return; // sadece gönüllü sayfasında
 
   const listEl = document.getElementById("planned-events");
   const noEventsEl = document.getElementById("no-events-message");
   const introEl = document.getElementById("events-intro");
   if (!listEl || !noEventsEl || !introEl) return;
 
-  let events = defaultPlannedEvents;
+  listEl.innerHTML = '<p class="prose">Yükleniyor...</p>';
 
+  let events = [];
   try {
-    const res = await fetch("/api/planned-events");
-    if (res.ok) {
-      const json = await res.json();
-      if (json && Array.isArray(json.events) && json.events.length) {
-        events = json.events;
-      }
-    }
+    const res = await fetch("/api/event-polls");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    events = data.events || [];
   } catch (err) {
-    console.error("Planned events API hatası:", err);
-    // API bozulursa defaultPlannedEvents ile devam ediyoruz
+    console.error("Event polls API hatası:", err);
+    // Backend çalışmıyorsa fallback kullan
+    events = plannedEventsFallback.map((e) => ({
+      ...e,
+      yes: 0,
+      no: 0,
+    }));
   }
 
   if (!events || !events.length) {
-    // hiç etkinlik yoksa mesajı göster
+    listEl.innerHTML = "";
     noEventsEl.style.display = "block";
     introEl.style.display = "none";
     return;
@@ -644,18 +643,17 @@ async function renderPlannedEventsPoll() {
   // Etkinlik var -> listeyi doldur
   noEventsEl.style.display = "none";
   introEl.style.display = "block";
-
   listEl.innerHTML = "";
 
-  const storedVotes = loadEventVotes();
+  const storedVotesLocal = loadEventVotes();
 
   events.forEach((ev) => {
     const wrapper = document.createElement("article");
     wrapper.className = "event-poll-card";
 
-    const yesCount = storedVotes[ev.id]?.yes ?? 0;
-    const noCount = storedVotes[ev.id]?.no ?? 0;
-    const userChoice = storedVotes[ev.id]?.choice ?? null;
+    const yesCount = ev.yes || 0;
+    const noCount = ev.no || 0;
+    const userChoice = storedVotesLocal[ev.id]?.choice || null;
 
     wrapper.innerHTML = `
       <div class="event-poll-main">
@@ -668,8 +666,12 @@ async function renderPlannedEventsPoll() {
         <p class="event-poll-desc">${ev.description}</p>
       </div>
       <div class="event-poll-actions">
-        <button class="btn btn-yes" data-action="yes">Katılıyorum <span class="badge" data-count="yes">${yesCount}</span></button>
-        <button class="btn btn-no" data-action="no">Katılmıyorum <span class="badge" data-count="no">${noCount}</span></button>
+        <button class="btn btn-yes" data-action="yes">
+          Katılıyorum <span class="badge" data-count="yes">${yesCount}</span>
+        </button>
+        <button class="btn btn-no" data-action="no">
+          Katılmıyorum <span class="badge" data-count="no">${noCount}</span>
+        </button>
       </div>
       <p class="event-poll-note">
         Not: Bu anket sadece gönüllü etkinlik planlaması içindir. Gerçek etkinlik detayları ve onay süreci için lütfen iletişimde kalın.
@@ -683,36 +685,49 @@ async function renderPlannedEventsPoll() {
     const yesBadge = wrapper.querySelector('[data-count="yes"]');
     const noBadge = wrapper.querySelector('[data-count="no"]');
 
-    if (userChoice === "yes") {
-      yesBtn.classList.add("active");
-    } else if (userChoice === "no") {
-      noBtn.classList.add("active");
-    }
+    // Kullanıcının önceki seçimini stil olarak göster
+    if (userChoice === "yes") yesBtn.classList.add("active");
+    if (userChoice === "no") noBtn.classList.add("active");
 
-    function handleVote(choice) {
-      let votes = loadEventVotes();
-      const current = votes[ev.id] || { yes: yesCount, no: noCount, choice: null };
+    async function handleVote(choice) {
+      const localVotes = loadEventVotes();
+      const prevChoice = localVotes[ev.id]?.choice || null;
 
-      if (current.choice === choice) return;
+      // Aynı seçeneğe tekrar tıklarsa hiçbir şey yapma
+      if (prevChoice === choice) return;
 
-      if (current.choice === "yes") current.yes = Math.max(0, current.yes - 1);
-      if (current.choice === "no") current.no = Math.max(0, current.no - 1);
+      let yes = parseInt(yesBadge.textContent, 10) || 0;
+      let no = parseInt(noBadge.textContent, 10) || 0;
 
-      if (choice === "yes") current.yes += 1;
-      if (choice === "no") current.no += 1;
-      current.choice = choice;
+      // Eski tercihi yerel sayımdan çıkar
+      if (prevChoice === "yes") yes = Math.max(0, yes - 1);
+      if (prevChoice === "no") no = Math.max(0, no - 1);
 
-      votes[ev.id] = current;
-      saveEventVotes(votes);
+      // Yeni tercihi ekle
+      if (choice === "yes") yes += 1;
+      if (choice === "no") no += 1;
 
-      yesBadge.textContent = current.yes;
-      noBadge.textContent = current.no;
-
+      // UI'ı hemen güncelle (optimistic update)
+      yesBadge.textContent = yes;
+      noBadge.textContent = no;
       yesBtn.classList.toggle("active", choice === "yes");
       noBtn.classList.toggle("active", choice === "no");
 
-      // İstersen buraya sunucuya oy gönderme ekleyebiliriz:
-      // fetch("/api/event-vote", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ id: ev.id, choice }) });
+      // LocalStorage'a seçimi kaydet
+      localVotes[ev.id] = { choice };
+      saveEventVotes(localVotes);
+
+      // Sunucuya gönder
+      try {
+        await fetch("/api/event-vote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: ev.id, choice, previousChoice: prevChoice }),
+        });
+      } catch (err) {
+        console.error("Oy gönderilemedi:", err);
+        // İstersen burada kullanıcının haberini verip UI'ı geri alabilirsin
+      }
     }
 
     yesBtn.addEventListener("click", () => handleVote("yes"));
@@ -720,6 +735,6 @@ async function renderPlannedEventsPoll() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  renderPlannedEventsPoll();
-});
+// Sayfa yüklendiğinde anketi başlat
+document.addEventListener("DOMContentLoaded", renderPlannedEventsPoll);
+

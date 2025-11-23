@@ -1,22 +1,86 @@
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
+const fsPromises = require("fs/promises");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Body parsers (form ve JSON verisi için)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ----------------- DATA DOSYALARI -----------------
+const DATA_DIR = path.join(__dirname, "data");
+const EVENT_REQUESTS_FILE = path.join(DATA_DIR, "event_requests.json");
+const EVENT_VOTES_FILE = path.join(DATA_DIR, "event_votes.json");
 
+// data klasörü yoksa oluştur
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// JSON helper fonksiyonları
+async function readJsonSafe(filePath, defaultValue) {
+  try {
+    const data = await fsPromises.readFile(filePath, "utf8");
+    return JSON.parse(data);
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      console.error("JSON okuma hatası:", filePath, err.message);
+    }
+    return defaultValue;
+  }
+}
+
+async function writeJsonSafe(filePath, value) {
+  try {
+    await fsPromises.writeFile(filePath, JSON.stringify(value, null, 2), "utf8");
+  } catch (err) {
+    console.error("JSON yazma hatası:", filePath, err.message);
+  }
+}
+
+// ----------------- MIDDLEWARE -----------------
+app.use(express.json()); // JSON gövdeleri için
 // Statik dosyalar (public klasörü)
 app.use(express.static(path.join(__dirname, "public")));
 
-/**
- * Gönüllü sayfası için başlangıç etkinlikleri
- * Bunlar hem /api/planned-events hem de front-end fallback için kullanılıyor.
- */
-let plannedEvents = [
+// ---------------------------------------------------------
+//  GÖNÜLLÜ FORMU: /api/event-request
+//  (gonullu.html'deki form buraya POST atacak)
+// ---------------------------------------------------------
+app.post("/api/event-request", async (req, res) => {
+  try {
+    const body = req.body || {};
+
+    const entry = {
+      id: Date.now().toString(36),
+      receivedAt: new Date().toISOString(),
+      name: body.name || "",
+      email: body.email || "",
+      city: body.city || "",
+      type: body.type || "",
+      date: body.date || "",
+      people: body.people || null,
+      message: body.message || "",
+      motivation: Array.isArray(body.motivation) ? body.motivation : [],
+    };
+
+    const list = await readJsonSafe(EVENT_REQUESTS_FILE, []);
+    list.push(entry);
+    await writeJsonSafe(EVENT_REQUESTS_FILE, list);
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("Etkinlik talebi kaydedilirken hata:", err);
+    return res.status(500).json({ error: "Etkinlik talebi kaydedilemedi" });
+  }
+});
+
+// ---------------------------------------------------------
+//  GÖNÜLLÜ ETKİNLİK ANKETİ: /api/event-polls & /api/event-vote
+// ---------------------------------------------------------
+
+// Sabit etkinlik listesi (gönüllü sayfasında görünenler)
+const PLANNED_EVENTS = [
   {
     id: "evt-1",
     title: "Kadıköy Sahil Temizliği",
@@ -46,8 +110,62 @@ let plannedEvents = [
   },
 ];
 
+// Etkinlik + mevcut oyları döndürür
+app.get("/api/event-polls", async (req, res) => {
+  try {
+    const votes = await readJsonSafe(EVENT_VOTES_FILE, {});
+
+    const eventsWithVotes = PLANNED_EVENTS.map((ev) => {
+      const v = votes[ev.id] || { yes: 0, no: 0 };
+      return {
+        ...ev,
+        yes: v.yes || 0,
+        no: v.no || 0,
+      };
+    });
+
+    return res.json({ events: eventsWithVotes });
+  } catch (err) {
+    console.error("Event polls okunamadı:", err);
+    return res.status(500).json({ error: "Etkinlik anketi okunamadı" });
+  }
+});
+
+// Oy kaydı
+app.post("/api/event-vote", async (req, res) => {
+  try {
+    const { id, choice, previousChoice } = req.body || {};
+
+    if (!id || !["yes", "no"].includes(choice)) {
+      return res.status(400).json({ error: "Geçersiz istek" });
+    }
+
+    const votes = await readJsonSafe(EVENT_VOTES_FILE, {});
+    const current = votes[id] || { yes: 0, no: 0 };
+
+    // Eski oyu geri al (aynı cihazdan tercih değiştiyse)
+    if (previousChoice === "yes") {
+      current.yes = Math.max(0, current.yes - 1);
+    } else if (previousChoice === "no") {
+      current.no = Math.max(0, current.no - 1);
+    }
+
+    // Yeni oyu ekle
+    if (choice === "yes") current.yes += 1;
+    if (choice === "no") current.no += 1;
+
+    votes[id] = current;
+    await writeJsonSafe(EVENT_VOTES_FILE, votes);
+
+    return res.json({ ok: true, id, votes: current });
+  } catch (err) {
+    console.error("Oy kaydedilirken hata:", err);
+    return res.status(500).json({ error: "Oy kaydedilemedi" });
+  }
+});
+
 // ---------------------------------------------------------
-//  HABER API (NewsAPI Proxy)
+//  HABER API (NewsAPI Proxy) — SENİN MEVCUT KODUN
 // ---------------------------------------------------------
 app.get("/api/news", async (req, res) => {
   try {
@@ -184,7 +302,6 @@ app.get("/api/events", async (req, res) => {
   }
 
   try {
-    // 1) EVENTBRITE (opsiyonel)
     const EB_TOKEN = process.env.EVENTBRITE_TOKEN;
     if (EB_TOKEN) {
       try {
@@ -218,7 +335,6 @@ app.get("/api/events", async (req, res) => {
       }
     }
 
-    // 2) İBB (İstanbul)
     if (city === "istanbul") {
       try {
         const ibbURL =
@@ -247,7 +363,6 @@ app.get("/api/events", async (req, res) => {
       }
     }
 
-    // 3) ABB (Ankara)
     if (city === "ankara") {
       try {
         const abbURL =
@@ -276,7 +391,6 @@ app.get("/api/events", async (req, res) => {
       }
     }
 
-    // 4) İZBB (İzmir)
     if (city === "izmir") {
       try {
         const izmirURL = "https://acikveri.bizizmir.com/api/data/etkinlik";
@@ -304,83 +418,11 @@ app.get("/api/events", async (req, res) => {
       }
     }
 
-    // Eğer hiçbir yerden veri gelmezse 200 + boş dizi döndür
     return res.json({ events: results });
   } catch (err) {
     console.error("Etkinlik API genel hatası:", err);
     return res.status(500).json({ error: "API birleştirme hatası" });
   }
-});
-
-// ---------------------------------------------------------
-//  GÖNÜLLÜ: PLANLANAN ETKİNLİKLER & FORM ENDPOINTİ
-// ---------------------------------------------------------
-
-// Planlanan etkinlikler (anket için)
-app.get("/api/planned-events", (req, res) => {
-  res.json({ events: plannedEvents });
-});
-
-// Etkinlik talep formu
-app.post("/api/event-request", (req, res) => {
-  const {
-    name,
-    email,
-    city,
-    type,
-    date,
-    people,
-    message,
-    motivation,
-  } = req.body;
-
-  console.log("Yeni etkinlik talebi alındı:", {
-    name,
-    email,
-    city,
-    type,
-    date,
-    people,
-    message,
-    motivation,
-  });
-
-  // Form verisinden "ankete eklenebilir" basit bir etkinlik nesnesi üretelim
-  const typeMap = {
-    "sahil-temizligi": "Sahil Temizliği",
-    "orman-temizligi": "Orman / Doğa Yürüyüşü & Temizlik",
-    atolye: "Atölye / Eğitim",
-    soylesi: "Söyleşi / Panel",
-    kampanya: "İmza / Farkındalık Kampanyası",
-    diger: "Diğer",
-  };
-
-  const prettyType = typeMap[type] || "Etkinlik";
-
-  const newEvent = {
-    id: `user-${Date.now()}`,
-    title:
-      (message && message.split("\n")[0].slice(0, 80)) ||
-      `${city || "Şehir"} – ${prettyType} önerisi`,
-    city: city || "Belirtilmedi",
-    date: date || "Tarih belirlenecek",
-    type: prettyType,
-    description:
-      message ||
-      `Gönüllü etkinlik önerisi: ${prettyType} – yaklaşık katılımcı sayısı: ${
-        people || "belirtilmedi"
-      }.`,
-  };
-
-  // Sadece RAM'de tutuyoruz (kalıcı DB yok). Render restart olursa sıfırlanır.
-  plannedEvents.push(newEvent);
-
-  res.json({
-    ok: true,
-    message:
-      "Etkinlik talebin alındı. Onaylandıktan sonra planlanan etkinlikler listesine eklenebilir.",
-    event: newEvent,
-  });
 });
 
 // ---------------------------------------------------------
