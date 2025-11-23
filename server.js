@@ -5,8 +5,46 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Body parsers (form ve JSON verisi için)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Statik dosyalar (public klasörü)
 app.use(express.static(path.join(__dirname, "public")));
+
+/**
+ * Gönüllü sayfası için başlangıç etkinlikleri
+ * Bunlar hem /api/planned-events hem de front-end fallback için kullanılıyor.
+ */
+let plannedEvents = [
+  {
+    id: "evt-1",
+    title: "Kadıköy Sahil Temizliği",
+    city: "İstanbul",
+    date: "14 Aralık 2025 – 10.00",
+    type: "Sahil Temizliği",
+    description:
+      "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
+  },
+  {
+    id: "evt-2",
+    title: "Şehirde Atıksız Yaşam Atölyesi",
+    city: "Ankara",
+    date: "21 Aralık 2025 – 14.00",
+    type: "Atölye / Eğitim",
+    description:
+      "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
+  },
+  {
+    id: "evt-3",
+    title: "Deniz Kirliliği Farkındalık Yürüyüşü",
+    city: "İzmir",
+    date: "28 Aralık 2025 – 16.00",
+    type: "Farkındalık Kampanyası",
+    description:
+      "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
+  },
+];
 
 // ---------------------------------------------------------
 //  HABER API (NewsAPI Proxy)
@@ -136,9 +174,7 @@ app.get("/api/recycling-points", async (req, res) => {
 
 // ---------------------------------------------------------
 //  TÜRKİYE ETKİNLİK AGGREGATOR
-//  İBB + ABB + İZBB + Eventbrite (Meetup YOK)
 // ---------------------------------------------------------
-
 app.get("/api/events", async (req, res) => {
   const city = (req.query.city || "").toLowerCase();
   const results = [];
@@ -274,6 +310,77 @@ app.get("/api/events", async (req, res) => {
     console.error("Etkinlik API genel hatası:", err);
     return res.status(500).json({ error: "API birleştirme hatası" });
   }
+});
+
+// ---------------------------------------------------------
+//  GÖNÜLLÜ: PLANLANAN ETKİNLİKLER & FORM ENDPOINTİ
+// ---------------------------------------------------------
+
+// Planlanan etkinlikler (anket için)
+app.get("/api/planned-events", (req, res) => {
+  res.json({ events: plannedEvents });
+});
+
+// Etkinlik talep formu
+app.post("/api/event-request", (req, res) => {
+  const {
+    name,
+    email,
+    city,
+    type,
+    date,
+    people,
+    message,
+    motivation,
+  } = req.body;
+
+  console.log("Yeni etkinlik talebi alındı:", {
+    name,
+    email,
+    city,
+    type,
+    date,
+    people,
+    message,
+    motivation,
+  });
+
+  // Form verisinden "ankete eklenebilir" basit bir etkinlik nesnesi üretelim
+  const typeMap = {
+    "sahil-temizligi": "Sahil Temizliği",
+    "orman-temizligi": "Orman / Doğa Yürüyüşü & Temizlik",
+    atolye: "Atölye / Eğitim",
+    soylesi: "Söyleşi / Panel",
+    kampanya: "İmza / Farkındalık Kampanyası",
+    diger: "Diğer",
+  };
+
+  const prettyType = typeMap[type] || "Etkinlik";
+
+  const newEvent = {
+    id: `user-${Date.now()}`,
+    title:
+      (message && message.split("\n")[0].slice(0, 80)) ||
+      `${city || "Şehir"} – ${prettyType} önerisi`,
+    city: city || "Belirtilmedi",
+    date: date || "Tarih belirlenecek",
+    type: prettyType,
+    description:
+      message ||
+      `Gönüllü etkinlik önerisi: ${prettyType} – yaklaşık katılımcı sayısı: ${
+        people || "belirtilmedi"
+      }.`,
+  };
+
+  // Sadece RAM'de tutuyoruz (kalıcı DB yok). Render restart olursa sıfırlanır.
+  plannedEvents.push(newEvent);
+
+  res.json({
+    ok: true,
+    message:
+      "Etkinlik talebin alındı. Onaylandıktan sonra planlanan etkinlikler listesine eklenebilir.",
+    event: newEvent,
+  });
 });
 
 // ---------------------------------------------------------

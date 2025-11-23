@@ -38,7 +38,7 @@
 
     <main class="container">
       
-      <!-- ÜST KISIM: BİLGİ + "HENÜZ PLANLANAN ETKİNLİK YOK" -->
+      <!-- ÜST KISIM: ANKET + KILAVUZ -->
       <section class="section">
         <div class="section-header">
           <h1 class="section-title">Gönüllü Ol</h1>
@@ -48,23 +48,22 @@
         </div>
         <div class="split">
           <div class="split-card">
-  <h2 class="section-title" style="font-size:1.05rem;">Planlanan Etkinlikler Anketi</h2>
-  <p class="prose" id="events-intro">
-    Aşağıda topluluktan gelen çevre etkinliklerini görüyorsun. Her etkinlik için
-    <strong>“Katılıyorum”</strong> veya <strong>“Katılmıyorum”</strong> diyerek ankete katkı verebilirsin.
-    Oylar sadece istatistik amaçlıdır.
-  </p>
+            <h2 class="section-title" style="font-size:1.05rem;">Planlanan Etkinlikler Anketi</h2>
+            <p class="prose" id="events-intro">
+              Aşağıda topluluktan gelen çevre etkinliklerini görüyorsun. Her etkinlik için
+              <strong>“Katılıyorum”</strong> veya <strong>“Katılmıyorum”</strong> diyerek ankete katkı verebilirsin.
+              Oylar sadece istatistik amaçlıdır.
+            </p>
 
-  <!-- ETKİNLİK LİSTESİ BURAYA JS İLE DOLDURULACAK -->
-  <div id="planned-events" class="event-poll-list"></div>
+            <!-- ETKİNLİK LİSTESİ BURAYA JS İLE DOLDURULACAK -->
+            <div id="planned-events" class="event-poll-list"></div>
 
-  <!-- Hiç etkinlik yoksa gösterilecek mesaj -->
-  <p class="prose" id="no-events-message" style="display:none;">
-    Şu anda ankete açılmış bir etkinlik görünmüyor.
-    İlk etkinliği önermek için aşağıdaki formu doldurabilirsin. 🌿
-  </p>
-</div>
-
+            <!-- Hiç etkinlik yoksa gösterilecek mesaj -->
+            <p class="prose" id="no-events-message" style="display:none;">
+              Şu anda ankete açılmış bir etkinlik görünmüyor.
+              İlk etkinliği önermek için aşağıdaki formu doldurabilirsin. 🌿
+            </p>
+          </div>
 
           <div class="split-card">
             <h2 class="section-title" style="font-size:1.05rem;">Gönüllü Başlangıç Kılavuzu</h2>
@@ -73,27 +72,26 @@
             </p>
             <ul class="bullet-list">
               <li>Çevre dostu ürünler kullanmaya özen göster.</li>
-<li>Çevrimiçi çevre forumlarında deneyimlerini paylaş.</li>
-<li>Ayda bir kez sahil veya orman temizliğine katıl / organize et.</li>
-<li>Okulda/işte bir “yeşil ekip” kurup basit hedefler belirleyin.</li>
-<li>Çevrende atık toplama / geri dönüşüm köşeleri oluştur.</li>
+              <li>Çevrimiçi çevre forumlarında deneyimlerini paylaş.</li>
+              <li>Ayda bir kez sahil veya orman temizliğine katıl / organize et.</li>
+              <li>Okulda/işte bir “yeşil ekip” kurup basit hedefler belirleyin.</li>
+              <li>Çevrende atık toplama / geri dönüşüm köşeleri oluştur.</li>
 
-<li>Evinde enerji tasarruflu ampuller ve verimli ev aletleri kullan.</li>
-<li>Gereksiz ışıkları ve prizde takılı cihazları kapatmayı alışkanlık haline getir.</li>
-<li>Tek kullanımlık plastiklerin yerine matara, bez çanta ve cam saklama kapları kullan.</li>
-<li>Toplu taşıma, bisiklet veya yürümeyi, kısa mesafelerde arabaya tercih et.</li>
-<li>Evinde ve iş yerinde geri dönüşüm kutuları için küçük bir alan oluştur.</li>
-<li>Çevreyle ilgili kitaplar, belgeseller ve podcast’lerle kendini düzenli olarak bilgilendir.</li>
+              <li>Evinde enerji tasarruflu ampuller ve verimli ev aletleri kullan.</li>
+              <li>Gereksiz ışıkları ve prizde takılı cihazları kapatmayı alışkanlık haline getir.</li>
+              <li>Tek kullanımlık plastiklerin yerine matara, bez çanta ve cam saklama kapları kullan.</li>
+              <li>Toplu taşıma, bisiklet veya yürümeyi, kısa mesafelerde arabaya tercih et.</li>
+              <li>Evinde ve iş yerinde geri dönüşüm kutuları için küçük bir alan oluştur.</li>
+              <li>Çevreyle ilgili kitaplar, belgeseller ve podcast’lerle kendini düzenli olarak bilgilendir.</li>
 
-<li>Mahallende ağaçlandırma veya yerel park bakımı için belediye ile iletişime geç.</li>
-<li>Arkadaşlarınla birlikte “telefonu bırak, doğaya çık” temalı küçük yürüyüş etkinlikleri düzenle.</li>
-<li>Okulda/işte tek kullanımlık bardaklar yerine kişisel kupa kullanımını teşvik et.</li>
-<li>Yerel esnafa daha az ambalajlı, yerel ve mevsimsel ürünler satmaları için geri bildirim ver.</li>
-<li>Kendi evinde kompost yapmayı öğren ve organik atıklarını çöpe göndermek yerine değerlendirmeye başla.</li>
+              <li>Mahallende ağaçlandırma veya yerel park bakımı için belediye ile iletişime geç.</li>
+              <li>Arkadaşlarınla birlikte “telefonu bırak, doğaya çık” temalı küçük yürüyüş etkinlikleri düzenle.</li>
+              <li>Okulda/işte tek kullanımlık bardaklar yerine kişisel kupa kullanımını teşvik et.</li>
+              <li>Yerel esnafa daha az ambalajlı, yerel ve mevsimsel ürünler satmaları için geri bildirim ver.</li>
+              <li>Kendi evinde kompost yapmayı öğren ve organik atıklarını çöpe göndermek yerine değerlendirmeye başla.</li>
 
-<li>Mahallende “sıfır atık günü” gibi küçük ama tekrarlanabilir bir etkinlik başlat.</li>
-<li>Yerel yönetimin iklim ve çevre politikalarını takip ederek, gerektiğinde yapıcı şekilde talepte bulun.</li>
-
+              <li>Mahallende “sıfır atık günü” gibi küçük ama tekrarlanabilir bir etkinlik başlat.</li>
+              <li>Yerel yönetimin iklim ve çevre politikalarını takip ederek, gerektiğinde yapıcı şekilde talepte bulun.</li>
             </ul>
           </div>
         </div>
@@ -105,6 +103,7 @@
           <h2 class="section-title">Etkinlik Talep &amp; Anket Formu</h2>
           <p class="section-subtitle">
             Planladığın / hayal ettiğin çevre etkinliğini ve gönüllülük motivasyonunu bizimle paylaş.
+            Gönderdiğin öneriler onaylandıktan sonra yukarıdaki <strong>Planlanan Etkinlikler Anketi</strong> bölümüne eklenebilir.
           </p>
         </div>
 

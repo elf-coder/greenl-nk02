@@ -494,16 +494,64 @@ function initEventRequestForm() {
   const msg = document.getElementById("event-request-message");
   if (!form) return;
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     if (msg) {
       msg.style.display = "block";
-      msg.textContent =
-        "Teşekkürler! Etkinlik talebin kaydedildi. Onaydan Sonra Ankete Sunacağız.";
+      msg.textContent = "Gönderiliyor...";
     }
 
-    form.reset();
+    const formData = new FormData(form);
+    const motivations = [];
+    form
+      .querySelectorAll('input[name="motivation"]:checked')
+      .forEach((cb) => motivations.push(cb.value));
+
+    const payload = {
+      name: (formData.get("name") || "").toString().trim(),
+      email: (formData.get("email") || "").toString().trim(),
+      city: (formData.get("city") || "").toString().trim(),
+      type: formData.get("type") || "",
+      date: (formData.get("date") || "").toString().trim(),
+      people: formData.get("people")
+        ? Number(formData.get("people"))
+        : null,
+      message: (formData.get("message") || "").toString().trim(),
+      motivation: motivations,
+    };
+
+    try {
+      const res = await fetch("/api/event-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Sunucu hatası");
+      }
+
+      if (msg) {
+        msg.style.display = "block";
+        msg.textContent =
+          data.message ||
+          "Teşekkürler! Etkinlik talebin kaydedildi. Onaydan sonra ankete eklenebilir. 🌿";
+      }
+
+      form.reset();
+    } catch (err) {
+      console.error("Event request error:", err);
+      if (msg) {
+        msg.style.display = "block";
+        msg.textContent =
+          "Üzgünüz, bir hata oluştu. Lütfen daha sonra tekrar dene.";
+      }
+    }
   });
 }
 
@@ -511,16 +559,16 @@ function initEventRequestForm() {
  * GÖNÜLLÜ SAYFASI: PLANLANAN ETKİNLİK ANKETİ
  *************************************************/
 
-// ÖRNEK: Back-end'den veya başka bir js dosyasından gelen veri yerine bunu kullanıyorsun.
-// İstersen burayı kendi verinle doldurabilirsin / API'den geleni buraya atayabilirsin.
-const plannedEvents = [
+// Front-end için fallback veri (API bozulsun diye)
+const defaultPlannedEvents = [
   {
     id: "evt-1",
     title: "Kadıköy Sahil Temizliği",
     city: "İstanbul",
     date: "14 Aralık 2025 – 10.00",
     type: "Sahil Temizliği",
-    description: "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
+    description:
+      "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
   },
   {
     id: "evt-2",
@@ -528,7 +576,8 @@ const plannedEvents = [
     city: "Ankara",
     date: "21 Aralık 2025 – 14.00",
     type: "Atölye / Eğitim",
-    description: "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
+    description:
+      "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
   },
   {
     id: "evt-3",
@@ -536,7 +585,8 @@ const plannedEvents = [
     city: "İzmir",
     date: "28 Aralık 2025 – 16.00",
     type: "Farkındalık Kampanyası",
-    description: "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
+    description:
+      "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
   },
 ];
 
@@ -560,7 +610,7 @@ function saveEventVotes(votes) {
   }
 }
 
-function renderPlannedEventsPoll() {
+async function renderPlannedEventsPoll() {
   const page = document.documentElement.dataset.page;
   if (page !== "volunteer") return; // sadece gönüllü sayfasında çalışsın
 
@@ -569,7 +619,22 @@ function renderPlannedEventsPoll() {
   const introEl = document.getElementById("events-intro");
   if (!listEl || !noEventsEl || !introEl) return;
 
-  if (!plannedEvents || plannedEvents.length === 0) {
+  let events = defaultPlannedEvents;
+
+  try {
+    const res = await fetch("/api/planned-events");
+    if (res.ok) {
+      const json = await res.json();
+      if (json && Array.isArray(json.events) && json.events.length) {
+        events = json.events;
+      }
+    }
+  } catch (err) {
+    console.error("Planned events API hatası:", err);
+    // API bozulursa defaultPlannedEvents ile devam ediyoruz
+  }
+
+  if (!events || !events.length) {
     // hiç etkinlik yoksa mesajı göster
     noEventsEl.style.display = "block";
     introEl.style.display = "none";
@@ -580,13 +645,14 @@ function renderPlannedEventsPoll() {
   noEventsEl.style.display = "none";
   introEl.style.display = "block";
 
+  listEl.innerHTML = "";
+
   const storedVotes = loadEventVotes();
 
-  plannedEvents.forEach((ev) => {
+  events.forEach((ev) => {
     const wrapper = document.createElement("article");
     wrapper.className = "event-poll-card";
 
-    // Varsayılan oy sayıları (sadece görsel istatistik)
     const yesCount = storedVotes[ev.id]?.yes ?? 0;
     const noCount = storedVotes[ev.id]?.no ?? 0;
     const userChoice = storedVotes[ev.id]?.choice ?? null;
@@ -617,7 +683,6 @@ function renderPlannedEventsPoll() {
     const yesBadge = wrapper.querySelector('[data-count="yes"]');
     const noBadge = wrapper.querySelector('[data-count="no"]');
 
-    // Kullanıcının önceki seçimini buton stiline yansıt
     if (userChoice === "yes") {
       yesBtn.classList.add("active");
     } else if (userChoice === "no") {
@@ -628,14 +693,11 @@ function renderPlannedEventsPoll() {
       let votes = loadEventVotes();
       const current = votes[ev.id] || { yes: yesCount, no: noCount, choice: null };
 
-      // Aynı seçeneğe tekrar tıklarsa hiçbir şey değiştirme (istersen burayı toggle yapabilirsin)
       if (current.choice === choice) return;
 
-      // Önce eski oyu geri al
       if (current.choice === "yes") current.yes = Math.max(0, current.yes - 1);
       if (current.choice === "no") current.no = Math.max(0, current.no - 1);
 
-      // Yeni oyu ekle
       if (choice === "yes") current.yes += 1;
       if (choice === "no") current.no += 1;
       current.choice = choice;
@@ -643,15 +705,14 @@ function renderPlannedEventsPoll() {
       votes[ev.id] = current;
       saveEventVotes(votes);
 
-      // UI güncelle
       yesBadge.textContent = current.yes;
       noBadge.textContent = current.no;
 
       yesBtn.classList.toggle("active", choice === "yes");
       noBtn.classList.toggle("active", choice === "no");
 
-      // Buraya istersen backend'e POST atan fetch ekleyebilirsin:
-      // fetch("/api/event-vote", { method:"POST", body: JSON.stringify({ id: ev.id, choice }) });
+      // İstersen buraya sunucuya oy gönderme ekleyebiliriz:
+      // fetch("/api/event-vote", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ id: ev.id, choice }) });
     }
 
     yesBtn.addEventListener("click", () => handleVote("yes"));
@@ -659,4 +720,6 @@ function renderPlannedEventsPoll() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", renderPlannedEventsPoll);
+document.addEventListener("DOMContentLoaded", () => {
+  renderPlannedEventsPoll();
+});
