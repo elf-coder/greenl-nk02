@@ -2,170 +2,53 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const fsPromises = require("fs/promises");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ----------------- DATA DOSYALARI -----------------
+// ---------- JSON dosyaları için ayarlar ----------
 const DATA_DIR = path.join(__dirname, "data");
-const EVENT_REQUESTS_FILE = path.join(DATA_DIR, "event_requests.json");
-const EVENT_VOTES_FILE = path.join(DATA_DIR, "event_votes.json");
+const EVENT_REQUESTS_FILE = path.join(DATA_DIR, "event-requests.json");
+const EVENT_VOTES_FILE = path.join(DATA_DIR, "event-votes.json");
 
-// data klasörü yoksa oluştur
+// data klasörünü ve json dosyalarını hazırla
 if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(DATA_DIR);
 }
 
-// JSON helper fonksiyonları
-async function readJsonSafe(filePath, defaultValue) {
-  try {
-    const data = await fsPromises.readFile(filePath, "utf8");
-    return JSON.parse(data);
-  } catch (err) {
-    if (err.code !== "ENOENT") {
-      console.error("JSON okuma hatası:", filePath, err.message);
-    }
-    return defaultValue;
+function ensureFile(filePath, defaultValue) {
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2), "utf8");
   }
 }
 
-async function writeJsonSafe(filePath, value) {
+ensureFile(EVENT_REQUESTS_FILE, { requests: [] });
+ensureFile(EVENT_VOTES_FILE, { votes: {} });
+
+function readJson(filePath, fallback) {
   try {
-    await fsPromises.writeFile(filePath, JSON.stringify(value, null, 2), "utf8");
-  } catch (err) {
-    console.error("JSON yazma hatası:", filePath, err.message);
+    const raw = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error("JSON okuma hatası:", filePath, e.message);
+    return fallback;
   }
 }
 
-// ----------------- MIDDLEWARE -----------------
-app.use(express.json()); // JSON gövdeleri için
-// Statik dosyalar (public klasörü)
-app.use(express.static(path.join(__dirname, "public")));
-
-// ---------------------------------------------------------
-//  GÖNÜLLÜ FORMU: /api/event-request
-//  (gonullu.html'deki form buraya POST atacak)
-// ---------------------------------------------------------
-app.post("/api/event-request", async (req, res) => {
+function writeJson(filePath, data) {
   try {
-    const body = req.body || {};
-
-    const entry = {
-      id: Date.now().toString(36),
-      receivedAt: new Date().toISOString(),
-      name: body.name || "",
-      email: body.email || "",
-      city: body.city || "",
-      type: body.type || "",
-      date: body.date || "",
-      people: body.people || null,
-      message: body.message || "",
-      motivation: Array.isArray(body.motivation) ? body.motivation : [],
-    };
-
-    const list = await readJsonSafe(EVENT_REQUESTS_FILE, []);
-    list.push(entry);
-    await writeJsonSafe(EVENT_REQUESTS_FILE, list);
-
-    return res.json({ ok: true });
-  } catch (err) {
-    console.error("Etkinlik talebi kaydedilirken hata:", err);
-    return res.status(500).json({ error: "Etkinlik talebi kaydedilemedi" });
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+  } catch (e) {
+    console.error("JSON yazma hatası:", filePath, e.message);
   }
-});
+}
+
+// ---------- MIDDLEWARE ----------
+app.use(express.json()); // body'deki JSON'u parse et
+app.use(express.static(path.join(__dirname, "public"))); // public klasörünü servis et
 
 // ---------------------------------------------------------
-//  GÖNÜLLÜ ETKİNLİK ANKETİ: /api/event-polls & /api/event-vote
-// ---------------------------------------------------------
-
-// Sabit etkinlik listesi (gönüllü sayfasında görünenler)
-const PLANNED_EVENTS = [
-  {
-    id: "evt-1",
-    title: "Kadıköy Sahil Temizliği",
-    city: "İstanbul",
-    date: "14 Aralık 2025 – 10.00",
-    type: "Sahil Temizliği",
-    description:
-      "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
-  },
-  {
-    id: "evt-2",
-    title: "Şehirde Atıksız Yaşam Atölyesi",
-    city: "Ankara",
-    date: "21 Aralık 2025 – 14.00",
-    type: "Atölye / Eğitim",
-    description:
-      "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
-  },
-  {
-    id: "evt-3",
-    title: "Deniz Kirliliği Farkındalık Yürüyüşü",
-    city: "İzmir",
-    date: "28 Aralık 2025 – 16.00",
-    type: "Farkındalık Kampanyası",
-    description:
-      "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
-  },
-];
-
-// Etkinlik + mevcut oyları döndürür
-app.get("/api/event-polls", async (req, res) => {
-  try {
-    const votes = await readJsonSafe(EVENT_VOTES_FILE, {});
-
-    const eventsWithVotes = PLANNED_EVENTS.map((ev) => {
-      const v = votes[ev.id] || { yes: 0, no: 0 };
-      return {
-        ...ev,
-        yes: v.yes || 0,
-        no: v.no || 0,
-      };
-    });
-
-    return res.json({ events: eventsWithVotes });
-  } catch (err) {
-    console.error("Event polls okunamadı:", err);
-    return res.status(500).json({ error: "Etkinlik anketi okunamadı" });
-  }
-});
-
-// Oy kaydı
-app.post("/api/event-vote", async (req, res) => {
-  try {
-    const { id, choice, previousChoice } = req.body || {};
-
-    if (!id || !["yes", "no"].includes(choice)) {
-      return res.status(400).json({ error: "Geçersiz istek" });
-    }
-
-    const votes = await readJsonSafe(EVENT_VOTES_FILE, {});
-    const current = votes[id] || { yes: 0, no: 0 };
-
-    // Eski oyu geri al (aynı cihazdan tercih değiştiyse)
-    if (previousChoice === "yes") {
-      current.yes = Math.max(0, current.yes - 1);
-    } else if (previousChoice === "no") {
-      current.no = Math.max(0, current.no - 1);
-    }
-
-    // Yeni oyu ekle
-    if (choice === "yes") current.yes += 1;
-    if (choice === "no") current.no += 1;
-
-    votes[id] = current;
-    await writeJsonSafe(EVENT_VOTES_FILE, votes);
-
-    return res.json({ ok: true, id, votes: current });
-  } catch (err) {
-    console.error("Oy kaydedilirken hata:", err);
-    return res.status(500).json({ error: "Oy kaydedilemedi" });
-  }
-});
-
-// ---------------------------------------------------------
-//  HABER API (NewsAPI Proxy) — SENİN MEVCUT KODUN
+//  HABER API (NewsAPI Proxy)
 // ---------------------------------------------------------
 app.get("/api/news", async (req, res) => {
   try {
@@ -235,7 +118,7 @@ app.get("/api/news", async (req, res) => {
   }
 });
 
-// Basit health check (Render için)
+// Basit health check
 app.get("/api/status", (req, res) => {
   res.json({ ok: true, name: "GreenLink", version: "1.0.0" });
 });
@@ -302,6 +185,7 @@ app.get("/api/events", async (req, res) => {
   }
 
   try {
+    // 1) EVENTBRITE (opsiyonel)
     const EB_TOKEN = process.env.EVENTBRITE_TOKEN;
     if (EB_TOKEN) {
       try {
@@ -335,6 +219,7 @@ app.get("/api/events", async (req, res) => {
       }
     }
 
+    // 2) İBB (İstanbul)
     if (city === "istanbul") {
       try {
         const ibbURL =
@@ -363,6 +248,7 @@ app.get("/api/events", async (req, res) => {
       }
     }
 
+    // 3) ABB (Ankara)
     if (city === "ankara") {
       try {
         const abbURL =
@@ -391,6 +277,7 @@ app.get("/api/events", async (req, res) => {
       }
     }
 
+    // 4) İZBB (İzmir)
     if (city === "izmir") {
       try {
         const izmirURL = "https://acikveri.bizizmir.com/api/data/etkinlik";
@@ -423,6 +310,63 @@ app.get("/api/events", async (req, res) => {
     console.error("Etkinlik API genel hatası:", err);
     return res.status(500).json({ error: "API birleştirme hatası" });
   }
+});
+
+// ---------------------------------------------------------
+//  ETKİNLİK TALEP FORMU  (/api/event-request)
+//  -> Gönüllü sayfasındaki form bu endpoint'e POST atabilir
+//  -> data/event-requests.json içine kaydediyoruz
+// ---------------------------------------------------------
+app.post("/api/event-request", (req, res) => {
+  const body = req.body || {};
+  const now = new Date().toISOString();
+
+  const record = {
+    id: `req-${Date.now()}`,
+    name: body.name || "",
+    email: body.email || "",
+    city: body.city || "",
+    type: body.type || "",
+    date: body.date || "",
+    people: body.people || "",
+    message: body.message || "",
+    motivation: body.motivation || [], // checkbox'lar
+    createdAt: now,
+  };
+
+  const data = readJson(EVENT_REQUESTS_FILE, { requests: [] });
+  data.requests.push(record);
+  writeJson(EVENT_REQUESTS_FILE, data);
+
+  return res.json({ ok: true, saved: record });
+});
+
+// ---------------------------------------------------------
+//  ETKİNLİK ANKET OYLARI (/api/event-vote)
+//  -> Butonlara tıklanınca burada toplu sayaç tutulur
+// ---------------------------------------------------------
+app.get("/api/event-votes", (req, res) => {
+  const data = readJson(EVENT_VOTES_FILE, { votes: {} });
+  res.json(data);
+});
+
+app.post("/api/event-vote", (req, res) => {
+  const { id, choice } = req.body || {};
+  if (!id || !["yes", "no"].includes(choice)) {
+    return res.status(400).json({ error: "id ve choice (yes/no) gerekli" });
+  }
+
+  const data = readJson(EVENT_VOTES_FILE, { votes: {} });
+
+  if (!data.votes[id]) {
+    data.votes[id] = { yes: 0, no: 0 };
+  }
+
+  if (choice === "yes") data.votes[id].yes += 1;
+  if (choice === "no") data.votes[id].no += 1;
+
+  writeJson(EVENT_VOTES_FILE, data);
+  return res.json({ ok: true, votes: data.votes[id] });
 });
 
 // ---------------------------------------------------------

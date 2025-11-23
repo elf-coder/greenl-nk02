@@ -499,52 +499,42 @@ function initEventRequestForm() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    if (msg) {
-      msg.style.display = "block";
-      msg.textContent = "Gönderiliyor...";
-    }
-
-    const formData = new FormData(form);
+    // Form verilerini topla
+    const fd = new FormData(form);
     const payload = {
-      name: (formData.get("name") || "").trim(),
-      email: (formData.get("email") || "").trim(),
-      city: (formData.get("city") || "").trim(),
-      type: formData.get("type") || "",
-      date: (formData.get("date") || "").trim(),
-      people: formData.get("people")
-        ? Number(formData.get("people"))
-        : null,
-      message: (formData.get("message") || "").trim(),
-      motivation: formData.getAll("motivation"),
+      name: fd.get("name"),
+      email: fd.get("email"),
+      city: fd.get("city"),
+      type: fd.get("type"),
+      date: fd.get("date"),
+      people: fd.get("people"),
+      message: fd.get("message"),
+      motivation: fd.getAll("motivation") // çoklu checkbox
     };
 
     try {
       const res = await fetch("/api/event-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
 
-      if (!res.ok) {
-        throw new Error("HTTP " + res.status);
-      }
+      if (!res.ok) throw new Error("HTTP error");
 
-      if (msg) {
-        msg.style.display = "block";
-        msg.textContent =
-          "Teşekkürler! Etkinlik talebin kaydedildi. Onaydan sonra ankete eklemeye çalışacağız. 🌿";
-      }
+      // Başarılı → mesaj göster
+      msg.style.display = "block";
+      msg.textContent = "Teşekkürler! Etkinlik talebin kaydedildi. 🌿";
+
       form.reset();
+
     } catch (err) {
-      console.error("Form gönderim hatası:", err);
-      if (msg) {
-        msg.style.display = "block";
-        msg.textContent =
-          "Üzgünüz, form gönderilirken bir hata oluştu. Lütfen daha sonra tekrar dene.";
-      }
+      console.error("Form gönderilemedi:", err);
+      msg.style.display = "block";
+      msg.textContent = "Gönderim başarısız oldu. Lütfen tekrar dene.";
     }
   });
 }
+
 
 /*************************************************
  * GÖNÜLLÜ SAYFASI: PLANLANAN ETKİNLİK ANKETİ
