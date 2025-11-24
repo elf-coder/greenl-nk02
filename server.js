@@ -11,6 +11,37 @@ const DATA_DIR = path.join(__dirname, "data");
 const EVENT_REQUESTS_FILE = path.join(DATA_DIR, "event-requests.json");
 const EVENT_VOTES_FILE = path.join(DATA_DIR, "event-votes.json");
 
+// Varsayılan (sabit) anket etkinlikleri
+const PLANNED_EVENTS = [
+  {
+    id: "evt-1",
+    title: "Kadıköy Sahil Temizliği",
+    city: "İstanbul",
+    date: "14 Aralık 2025 – 10.00",
+    type: "Sahil Temizliği",
+    description:
+      "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
+  },
+  {
+    id: "evt-2",
+    title: "Şehirde Atıksız Yaşam Atölyesi",
+    city: "Ankara",
+    date: "21 Aralık 2025 – 14.00",
+    type: "Atölye / Eğitim",
+    description:
+      "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
+  },
+  {
+    id: "evt-3",
+    title: "Deniz Kirliliği Farkındalık Yürüyüşü",
+    city: "İzmir",
+    date: "28 Aralık 2025 – 16.00",
+    type: "Farkındalık Kampanyası",
+    description:
+      "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
+  },
+];
+
 // data klasörünü ve json dosyalarını hazırla
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR);
@@ -314,6 +345,8 @@ app.get("/api/events", async (req, res) => {
 
 // ---------------------------------------------------------
 //  ETKİNLİK TALEP FORMU  (/api/event-request)
+//  -> Gönüllü sayfasındaki form bu endpoint'e POST atıyor
+//  -> data/event-requests.json içine kaydediyoruz
 // ---------------------------------------------------------
 app.post("/api/event-request", (req, res) => {
   const body = req.body || {};
@@ -328,7 +361,7 @@ app.post("/api/event-request", (req, res) => {
     date: body.date || "",
     people: body.people || "",
     message: body.message || "",
-    motivation: body.motivation || [],
+    motivation: body.motivation || [], // checkbox'lar
     createdAt: now,
   };
 
@@ -359,22 +392,69 @@ app.post("/api/event-vote", (req, res) => {
     data.votes[id] = { yes: 0, no: 0 };
   }
 
-  const entry = data.votes[id];
-
-  // Eski tercihi geri al
-  if (previousChoice === "yes") {
-    entry.yes = Math.max(0, entry.yes - 1);
+  // Kullanıcının önceki tercihini geri al (jenerik koruma)
+  if (previousChoice === "yes" && data.votes[id].yes > 0) {
+    data.votes[id].yes -= 1;
   }
-  if (previousChoice === "no") {
-    entry.no = Math.max(0, entry.no - 1);
+  if (previousChoice === "no" && data.votes[id].no > 0) {
+    data.votes[id].no -= 1;
   }
 
-  // Yeni tercihi ekle
-  if (choice === "yes") entry.yes += 1;
-  if (choice === "no") entry.no += 1;
+  if (choice === "yes") data.votes[id].yes += 1;
+  if (choice === "no") data.votes[id].no += 1;
 
   writeJson(EVENT_VOTES_FILE, data);
-  return res.json({ ok: true, votes: entry });
+  return res.json({ ok: true, votes: data.votes[id] });
+});
+
+// ---------------------------------------------------------
+//  ANKET ETKİNLİKLER LİSTESİ  (/api/event-polls)
+//  -> Sabit 3 etkinlik + event-requests.json'daki talepler
+//  -> Her birine event-votes.json'dan yes/no ekliyoruz
+// ---------------------------------------------------------
+app.get("/api/event-polls", (req, res) => {
+  const requestsData = readJson(EVENT_REQUESTS_FILE, { requests: [] });
+  const votesData = readJson(EVENT_VOTES_FILE, { votes: {} });
+
+  const requestEvents = (requestsData.requests || []).map((r) => {
+    // Tür etiketini biraz güzelleştirebiliriz
+    let typeLabel = "Topluluk Önerisi";
+    if (r.type === "sahil-temizligi") typeLabel = "Sahil Temizliği";
+    else if (r.type === "orman-temizligi") typeLabel = "Orman / Doğa Yürüyüşü & Temizlik";
+    else if (r.type === "atolye") typeLabel = "Atölye / Eğitim";
+    else if (r.type === "soylesi") typeLabel = "Söyleşi / Panel";
+    else if (r.type === "kampanya") typeLabel = "İmza / Farkındalık Kampanyası";
+    else if (r.type === "diger") typeLabel = "Diğer";
+
+    const v = votesData.votes[r.id] || { yes: 0, no: 0 };
+
+    return {
+      id: r.id,
+      title: r.message?.slice(0, 80) || "Topluluk Etkinlik Önerisi",
+      city: r.city || "Şehir belirtilmedi",
+      date: r.date || "",
+      type: typeLabel,
+      description:
+        r.message ||
+        "Topluluk tarafından önerilen bir etkinlik. Detaylar için iletişimde kalın.",
+      yes: v.yes || 0,
+      no: v.no || 0,
+    };
+  });
+
+  // Sabit etkinliklere de oy sayısı ekle
+  const baseEvents = PLANNED_EVENTS.map((ev) => {
+    const v = votesData.votes[ev.id] || { yes: 0, no: 0 };
+    return {
+      ...ev,
+      yes: v.yes || 0,
+      no: v.no || 0,
+    };
+  });
+
+  const allEvents = [...baseEvents, ...requestEvents];
+
+  res.json({ events: allEvents });
 });
 
 // ---------------------------------------------------------

@@ -10,9 +10,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 2) Sonra bu haberlere göre diğer bölümler çalışsın
   initCategoriesPage();
   initRecycling();        // Eylem rehberi: Google Maps üzerinden geri dönüşüm noktaları
-  initVolunteer();        // Gönüllü ol sayfası (API'siz bilgilendirme)
+  initVolunteer();        // Gönüllü ol sayfası (API'siz, bilgilendirme)
   initEventRequestForm(); // Gönüllü etkinlik talep formu
 });
+
 
 // ------------------ NAVBAR & YIL ------------------
 
@@ -32,6 +33,7 @@ function setYear() {
   const span = document.getElementById("year-span");
   if (span) span.textContent = new Date().getFullYear();
 }
+
 
 // ------------------ HABERLER ------------------
 
@@ -293,6 +295,7 @@ function formatDate(str) {
   });
 }
 
+
 // ------------------ KATEGORİLER SAYFASI ------------------
 
 function initCategoriesPage() {
@@ -347,6 +350,7 @@ function initCategoriesPage() {
     container.appendChild(card);
   });
 }
+
 
 // ------------------ EYLEM REHBERİ: Google Maps Places API ------------------
 
@@ -449,6 +453,7 @@ async function handleRecyclingSearch(input, resultsDiv) {
   }
 }
 
+
 // ------------------ GÖNÜLLÜ OL: API'SİZ BİLGİLENDİRME ------------------
 
 function initVolunteer() {
@@ -465,6 +470,8 @@ function initVolunteer() {
       return;
     }
 
+    // Burada artık hiçbir dış API çağrısı yok.
+    // Kullanıcıya "henüz planlanan etkinlik yok" mesajı veriyoruz.
     resultsDiv.innerHTML = `
       <article class="card" style="padding:1rem;">
         <div class="card-header-row">
@@ -485,6 +492,7 @@ function initVolunteer() {
   });
 }
 
+
 // ------------------ ETKİNLİK TALEP FORMU ------------------
 
 function initEventRequestForm() {
@@ -495,6 +503,7 @@ function initEventRequestForm() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Form verilerini topla
     const fd = new FormData(form);
     const payload = {
       name: fd.get("name"),
@@ -504,7 +513,7 @@ function initEventRequestForm() {
       date: fd.get("date"),
       people: fd.get("people"),
       message: fd.get("message"),
-      motivation: fd.getAll("motivation"),
+      motivation: fd.getAll("motivation"), // çoklu checkbox
     };
 
     try {
@@ -516,10 +525,15 @@ function initEventRequestForm() {
 
       if (!res.ok) throw new Error("HTTP error");
 
+      // Başarılı → mesaj göster
       msg.style.display = "block";
-      msg.textContent = "Teşekkürler! Etkinlik talebin kaydedildi. 🌿";
+      msg.textContent =
+        "Teşekkürler! Etkinlik talebin kaydedildi. Yeni öneriler ankete eklenirken dikkate alınacak. 🌿";
 
       form.reset();
+
+      // Yeni talep geldikten sonra anket listesini yeniden çek
+      await renderPlannedEventsPoll();
     } catch (err) {
       console.error("Form gönderilemedi:", err);
       msg.style.display = "block";
@@ -527,6 +541,7 @@ function initEventRequestForm() {
     }
   });
 }
+
 
 /*************************************************
  * GÖNÜLLÜ SAYFASI: PLANLANAN ETKİNLİK ANKETİ
@@ -594,32 +609,23 @@ async function renderPlannedEventsPoll() {
 
   listEl.innerHTML = '<p class="prose">Yükleniyor...</p>';
 
-  // Varsayılan: tüm etkinlikler 0 oy ile başlasın
-  let events = plannedEventsFallback.map((e) => ({
-    ...e,
-    yes: 0,
-    no: 0,
-  }));
-
-  // Sunucudan toplu oy sayılarını çek
+  let events = [];
   try {
-    const res = await fetch("/api/event-votes");
-    if (res.ok) {
-      const data = await res.json();
-      const votesById = data.votes || {};
-
-      events = plannedEventsFallback.map((e) => ({
-        ...e,
-        yes: votesById[e.id]?.yes || 0,
-        no: votesById[e.id]?.no || 0,
-      }));
-    }
+    const res = await fetch("/api/event-polls");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    events = data.events || [];
   } catch (err) {
-    console.error("Event votes API hatası:", err);
-    // Hata olursa events zaten 0'lı fallback
+    console.error("Event polls API hatası:", err);
+    // Backend çalışmıyorsa fallback kullan
+    events = plannedEventsFallback.map((e) => ({
+      ...e,
+      yes: 0,
+      no: 0,
+    }));
   }
 
-  if (!events.length) {
+  if (!events || !events.length) {
     listEl.innerHTML = "";
     noEventsEl.style.display = "block";
     introEl.style.display = "none";
@@ -712,6 +718,7 @@ async function renderPlannedEventsPoll() {
         });
       } catch (err) {
         console.error("Oy gönderilemedi:", err);
+        // İstersen burada kullanıcının haberini verip UI'ı geri alabilirsin
       }
     }
 
