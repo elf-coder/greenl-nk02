@@ -313,31 +313,7 @@ app.get("/api/events", async (req, res) => {
 });
 
 // ---------------------------------------------------------
-//  YARDIMCI: Etkinlik türünü label'a çevir
-// ---------------------------------------------------------
-function mapEventTypeLabel(type) {
-  switch (type) {
-    case "sahil-temizligi":
-      return "Sahil Temizliği";
-    case "orman-temizligi":
-      return "Orman / Doğa Yürüyüşü & Temizlik";
-    case "atolye":
-      return "Atölye / Eğitim";
-    case "soylesi":
-      return "Söyleşi / Panel";
-    case "kampanya":
-      return "İmza / Farkındalık Kampanyası";
-    case "diger":
-      return "Diğer";
-    default:
-      return type || "Etkinlik";
-  }
-}
-
-// ---------------------------------------------------------
 //  ETKİNLİK TALEP FORMU  (/api/event-request)
-//  -> Gönüllü sayfasındaki form bu endpoint'e POST atıyor
-//  -> data/event-requests.json içine kaydediyoruz
 // ---------------------------------------------------------
 app.post("/api/event-request", (req, res) => {
   const body = req.body || {};
@@ -352,7 +328,7 @@ app.post("/api/event-request", (req, res) => {
     date: body.date || "",
     people: body.people || "",
     message: body.message || "",
-    motivation: body.motivation || [], // checkbox'lar
+    motivation: body.motivation || [],
     createdAt: now,
   };
 
@@ -364,80 +340,7 @@ app.post("/api/event-request", (req, res) => {
 });
 
 // ---------------------------------------------------------
-//  PLANLANAN ETKİNLİK ANKETİ LİSTESİ  (/api/event-polls)
-//  -> Hem statik örnekler + kullanıcı talepleri
-//  -> Oy sayıları event-votes.json’dan alınır
-// ---------------------------------------------------------
-
-// Statik örnekler (backend tarafında)
-const BASE_POLL_EVENTS = [
-  {
-    id: "evt-1",
-    title: "Kadıköy Sahil Temizliği",
-    city: "İstanbul",
-    date: "14 Aralık 2025 – 10.00",
-    type: "Sahil Temizliği",
-    description:
-      "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
-  },
-  {
-    id: "evt-2",
-    title: "Şehirde Atıksız Yaşam Atölyesi",
-    city: "Ankara",
-    date: "21 Aralık 2025 – 14.00",
-    type: "Atölye / Eğitim",
-    description:
-      "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
-  },
-  {
-    id: "evt-3",
-    title: "Deniz Kirliliği Farkındalık Yürüyüşü",
-    city: "İzmir",
-    date: "28 Aralık 2025 – 16.00",
-    type: "Farkındalık Kampanyası",
-    description:
-      "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
-  },
-];
-
-app.get("/api/event-polls", (req, res) => {
-  const requestsData = readJson(EVENT_REQUESTS_FILE, { requests: [] });
-  const votesData = readJson(EVENT_VOTES_FILE, { votes: {} });
-  const votes = votesData.votes || {};
-
-  // Kullanıcı taleplerini de ankete dönüştürelim
-  const requestEvents = (requestsData.requests || []).map((r) => {
-    const baseTitle =
-      (r.message && r.message.trim().split("\n")[0]) ||
-      `${r.city || "Şehir"} – ${mapEventTypeLabel(r.type)}`;
-
-    return {
-      id: r.id, // vote id'si bu olacak
-      title: baseTitle.slice(0, 140),
-      city: r.city || "Belirtilmedi",
-      date: r.date || "Tarih net değil",
-      type: mapEventTypeLabel(r.type),
-      description:
-        r.message ||
-        "Gönüllü tarafından önerilen bir çevre etkinliği. Detaylar için organizatörle iletişime geçilecektir.",
-    };
-  });
-
-  const allEvents = [...BASE_POLL_EVENTS, ...requestEvents].map((ev) => {
-    const v = votes[ev.id] || { yes: 0, no: 0 };
-    return {
-      ...ev,
-      yes: v.yes || 0,
-      no: v.no || 0,
-    };
-  });
-
-  res.json({ events: allEvents });
-});
-
-// ---------------------------------------------------------
-//  ETKİNLİK ANKET OYLARI (/api/event-votes + /api/event-vote)
-//  -> Butonlara tıklanınca burada toplu sayaç tutulur
+//  ETKİNLİK ANKET OYLARI (/api/event-votes, /api/event-vote)
 // ---------------------------------------------------------
 app.get("/api/event-votes", (req, res) => {
   const data = readJson(EVENT_VOTES_FILE, { votes: {} });
@@ -458,9 +361,13 @@ app.post("/api/event-vote", (req, res) => {
 
   const entry = data.votes[id];
 
-  // Eski tercihi geri al (başka cihazlarda sayıların tutması için)
-  if (previousChoice === "yes" && entry.yes > 0) entry.yes -= 1;
-  if (previousChoice === "no" && entry.no > 0) entry.no -= 1;
+  // Eski tercihi geri al
+  if (previousChoice === "yes") {
+    entry.yes = Math.max(0, entry.yes - 1);
+  }
+  if (previousChoice === "no") {
+    entry.no = Math.max(0, entry.no - 1);
+  }
 
   // Yeni tercihi ekle
   if (choice === "yes") entry.yes += 1;

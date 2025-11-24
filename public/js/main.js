@@ -504,7 +504,7 @@ function initEventRequestForm() {
       date: fd.get("date"),
       people: fd.get("people"),
       message: fd.get("message"),
-      motivation: fd.getAll("motivation"), // çoklu checkbox
+      motivation: fd.getAll("motivation"),
     };
 
     try {
@@ -520,11 +520,6 @@ function initEventRequestForm() {
       msg.textContent = "Teşekkürler! Etkinlik talebin kaydedildi. 🌿";
 
       form.reset();
-
-      // Yeni talep, anket listesine de eklensin diye anketi yeniden yükle
-      if (typeof renderPlannedEventsPoll === "function") {
-        renderPlannedEventsPoll();
-      }
     } catch (err) {
       console.error("Form gönderilemedi:", err);
       msg.style.display = "block";
@@ -536,6 +531,37 @@ function initEventRequestForm() {
 /*************************************************
  * GÖNÜLLÜ SAYFASI: PLANLANAN ETKİNLİK ANKETİ
  *************************************************/
+
+// Backend down olursa diye, sadece başlık/metin fallback'i:
+const plannedEventsFallback = [
+  {
+    id: "evt-1",
+    title: "Kadıköy Sahil Temizliği",
+    city: "İstanbul",
+    date: "14 Aralık 2025 – 10.00",
+    type: "Sahil Temizliği",
+    description:
+      "Eldiven ve çöp poşetlerini biz getiriyoruz. Sen sadece kendini ve enerjini getir.",
+  },
+  {
+    id: "evt-2",
+    title: "Şehirde Atıksız Yaşam Atölyesi",
+    city: "Ankara",
+    date: "21 Aralık 2025 – 14.00",
+    type: "Atölye / Eğitim",
+    description:
+      "Evde, okulda ve işte atıksız yaşam pratikleri. Katılımcılara küçük bir rehber pdf gönderilecek.",
+  },
+  {
+    id: "evt-3",
+    title: "Deniz Kirliliği Farkındalık Yürüyüşü",
+    city: "İzmir",
+    date: "28 Aralık 2025 – 16.00",
+    type: "Farkındalık Kampanyası",
+    description:
+      "Kısa bir yürüyüş ve basın açıklaması. Pankartlar için geri dönüştürülmüş karton kullanılacak.",
+  },
+];
 
 // Yerel depolama anahtarı (aynı cihazdan tekrar oy verme kontrolü)
 const VOTE_STORAGE_KEY = "greenlink_event_votes";
@@ -568,19 +594,32 @@ async function renderPlannedEventsPoll() {
 
   listEl.innerHTML = '<p class="prose">Yükleniyor...</p>';
 
-  let events = [];
+  // Varsayılan: tüm etkinlikler 0 oy ile başlasın
+  let events = plannedEventsFallback.map((e) => ({
+    ...e,
+    yes: 0,
+    no: 0,
+  }));
+
+  // Sunucudan toplu oy sayılarını çek
   try {
-    const res = await fetch("/api/event-polls");
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    events = data.events || [];
+    const res = await fetch("/api/event-votes");
+    if (res.ok) {
+      const data = await res.json();
+      const votesById = data.votes || {};
+
+      events = plannedEventsFallback.map((e) => ({
+        ...e,
+        yes: votesById[e.id]?.yes || 0,
+        no: votesById[e.id]?.no || 0,
+      }));
+    }
   } catch (err) {
-    console.error("Event polls API hatası:", err);
-    // Backend bile yoksa tamamen boş listede "no events" gösterelim
-    events = [];
+    console.error("Event votes API hatası:", err);
+    // Hata olursa events zaten 0'lı fallback
   }
 
-  if (!events || !events.length) {
+  if (!events.length) {
     listEl.innerHTML = "";
     noEventsEl.style.display = "block";
     introEl.style.display = "none";
@@ -664,7 +703,7 @@ async function renderPlannedEventsPoll() {
       localVotes[ev.id] = { choice };
       saveEventVotes(localVotes);
 
-      // Sunucuya gönder → global sayacı güncelle
+      // Sunucuya gönder
       try {
         await fetch("/api/event-vote", {
           method: "POST",
@@ -673,7 +712,6 @@ async function renderPlannedEventsPoll() {
         });
       } catch (err) {
         console.error("Oy gönderilemedi:", err);
-        // İstersen burada kullanıcıya uyarı gösterilebilir
       }
     }
 
