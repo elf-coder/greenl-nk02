@@ -59,7 +59,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Güvenlik header'ları
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // CSP'yi kapat
+  })
+);
+
 
 // CORS
 const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || "";
