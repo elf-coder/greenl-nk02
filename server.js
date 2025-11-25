@@ -1,10 +1,19 @@
+// server.js
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
 
+const helmet = require("helmet");
+const cors = require("cors");
+const rateLimit = require("express-rate-limit");
+const { body, validationResult } = require("express-validator");
+
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+// Proxy (Render vb.) arkasında gerçek IP'yi alabilmek için
+app.set("trust proxy", 1);
 
 // ---------- JSON dosyaları için ayarlar ----------
 const DATA_DIR = path.join(__dirname, "data");
@@ -43,9 +52,126 @@ function writeJson(filePath, data) {
   }
 }
 
-// ---------- MIDDLEWARE ----------
-app.use(express.json()); // body'deki JSON'u parse et
-app.use(express.static(path.join(__dirname, "public"))); // public klasörünü servis et
+// ---------- GLOBAL MIDDLEWARE ----------
+
+// Body parse
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Güvenlik header'ları
+app.use(helmet());
+
+// CORS
+const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || "";
+const allowedOrigins = allowedOriginsEnv
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Postman / curl gibi origin'siz istekleri kabul et
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Origin not allowed by CORS"), false);
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+// Rate limit (15 dk / IP başına 100 istek)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    error: "Çok fazla istek gönderildi. Lütfen kısa bir süre sonra tekrar dene.",
+  },
+});
+
+// Sadece /api altına uygula
+app.use("/api", apiLimiter);
+
+// IP allowlist (opsiyonel)
+// .env: ALLOWED_IPS=127.0.0.1,::1 gibi
+const allowedIpsEnv = process.env.ALLOWED_IPS || "";
+const allowedIps = allowedIpsEnv
+  .split(",")
+  .map((ip) => ip.trim())
+  .filter(Boolean);
+
+if (allowedIps.length > 0) {
+  app.use((req, res, next) => {
+    const forwarded = (req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+    const ip = forwarded || req.ip || req.connection.remoteAddress || "";
+
+    if (allowedIps.includes(ip)) {
+      return next();
+    }
+
+    return res.status(403).json({
+      ok: false,
+      error: "Bu IP adresinin bu API'ye erişim izni yok.",
+    });
+  });
+}
+
+// reCAPTCHA doğrulama middleware'i
+async function verifyRecaptcha(req, res, next) {
+  try {
+    const secret = process.env.RECAPTCHA_SECRET_KEY;
+
+    // Development sırasında secret yoksa reCAPTCHA'yı atla
+    if (!secret) {
+      console.warn("Uyarı: RECAPTCHA_SECRET_KEY tanımlı değil, doğrulama atlanıyor.");
+      return next();
+    }
+
+    const token = req.body.recaptchaToken;
+    if (!token) {
+      return res.status(400).json({
+        ok: false,
+        error: "reCAPTCHA doğrulaması eksik.",
+      });
+    }
+
+    const params = new URLSearchParams();
+    params.append("secret", secret);
+    params.append("response", token);
+
+    const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      body: params,
+    });
+
+    const data = await response.json();
+
+    if (!data.success || (typeof data.score === "number" && data.score < 0.5)) {
+      return res.status(400).json({
+        ok: false,
+        error: "reCAPTCHA doğrulaması başarısız.",
+      });
+    }
+
+    next();
+  } catch (err) {
+    console.error("reCAPTCHA doğrulama hatası:", err);
+    res.status(500).json({
+      ok: false,
+      error: "reCAPTCHA doğrulama hatası.",
+    });
+  }
+}
+
+// Statik dosyalar (sonlara yakın ama API'den önce de olsa olur)
+app.use(express.static(path.join(__dirname, "public")));
 
 // ---------------------------------------------------------
 //  HABER API (NewsAPI Proxy)
@@ -358,29 +484,52 @@ const TYPE_LABELS = {
 // ---------------------------------------------------------
 //  ETKİNLİK TALEP FORMU  (/api/event-request)
 // ---------------------------------------------------------
-app.post("/api/event-request", (req, res) => {
-  const body = req.body || {};
-  const now = new Date().toISOString();
+app.post(
+  "/api/event-request",
+  verifyRecaptcha,
+  [
+    body("name").optional().isString().isLength({ max: 200 }).trim(),
+    body("email").optional().isEmail().normalizeEmail(),
+    body("city").optional().isString().isLength({ max: 100 }).trim(),
+    body("type").optional().isString().isLength({ max: 100 }).trim(),
+    body("date").optional().isString().isLength({ max: 100 }).trim(),
+    body("people").optional().isString().isLength({ max: 50 }).trim(),
+    body("message").optional().isString().isLength({ max: 2000 }).trim(),
+    body("motivation").optional().isArray(),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        ok: false,
+        error: "Geçersiz alanlar var.",
+        details: errors.array(),
+      });
+    }
 
-  const record = {
-    id: `req-${Date.now()}`, // bu id aynı zamanda ankette de kullanılacak
-    name: body.name || "",
-    email: body.email || "",
-    city: body.city || "",
-    type: body.type || "",
-    date: body.date || "",
-    people: body.people || "",
-    message: body.message || "",
-    motivation: body.motivation || [], // checkbox'lar
-    createdAt: now,
-  };
+    const body = req.body || {};
+    const now = new Date().toISOString();
 
-  const data = readJson(EVENT_REQUESTS_FILE, { requests: [] });
-  data.requests.push(record);
-  writeJson(EVENT_REQUESTS_FILE, data);
+    const record = {
+      id: `req-${Date.now()}`, // bu id aynı zamanda ankette de kullanılacak
+      name: body.name || "",
+      email: body.email || "",
+      city: body.city || "",
+      type: body.type || "",
+      date: body.date || "",
+      people: body.people || "",
+      message: body.message || "",
+      motivation: body.motivation || [], // checkbox'lar
+      createdAt: now,
+    };
 
-  return res.json({ ok: true, saved: record });
-});
+    const data = readJson(EVENT_REQUESTS_FILE, { requests: [] });
+    data.requests.push(record);
+    writeJson(EVENT_REQUESTS_FILE, data);
+
+    return res.json({ ok: true, saved: record });
+  }
+);
 
 // ---------------------------------------------------------
 //  ETKİNLİK ANKET OYLARI (/api/event-vote, /api/event-votes)
@@ -391,38 +540,56 @@ app.get("/api/event-votes", (req, res) => {
 });
 
 // choice: yes/no, previousChoice: yes/no/null
-app.post("/api/event-vote", (req, res) => {
-  const { id, choice, previousChoice } = req.body || {};
-  if (!id || !["yes", "no"].includes(choice)) {
-    return res.status(400).json({ error: "id ve choice (yes/no) gerekli" });
+app.post(
+  "/api/event-vote",
+  verifyRecaptcha,
+  [
+    body("id").isString().isLength({ max: 100 }),
+    body("choice").isIn(["yes", "no"]),
+    body("previousChoice")
+      .optional({ nullable: true })
+      .isIn(["yes", "no", null]),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        ok: false,
+        error: "Geçersiz oy verisi.",
+        details: errors.array(),
+      });
+    }
+
+    const { id, choice, previousChoice } = req.body || {};
+    if (!id || !["yes", "no"].includes(choice)) {
+      return res.status(400).json({ error: "id ve choice (yes/no) gerekli" });
+    }
+
+    const data = readJson(EVENT_VOTES_FILE, { votes: {} });
+
+    if (!data.votes[id]) {
+      data.votes[id] = { yes: 0, no: 0 };
+    }
+
+    // Önce eski oyu geri al
+    if (previousChoice === "yes") {
+      data.votes[id].yes = Math.max(0, data.votes[id].yes - 1);
+    }
+    if (previousChoice === "no") {
+      data.votes[id].no = Math.max(0, data.votes[id].no - 1);
+    }
+
+    // Sonra yeni oyu ekle
+    if (choice === "yes") data.votes[id].yes += 1;
+    if (choice === "no") data.votes[id].no += 1;
+
+    writeJson(EVENT_VOTES_FILE, data);
+    return res.json({ ok: true, votes: data.votes[id] });
   }
-
-  const data = readJson(EVENT_VOTES_FILE, { votes: {} });
-
-  if (!data.votes[id]) {
-    data.votes[id] = { yes: 0, no: 0 };
-  }
-
-  // Önce eski oyu geri al
-  if (previousChoice === "yes") {
-    data.votes[id].yes = Math.max(0, data.votes[id].yes - 1);
-  }
-  if (previousChoice === "no") {
-    data.votes[id].no = Math.max(0, data.votes[id].no - 1);
-  }
-
-  // Sonra yeni oyu ekle
-  if (choice === "yes") data.votes[id].yes += 1;
-  if (choice === "no") data.votes[id].no += 1;
-
-  writeJson(EVENT_VOTES_FILE, data);
-  return res.json({ ok: true, votes: data.votes[id] });
-});
+);
 
 // ---------------------------------------------------------
 //  ETKİNLİK ANKET LİSTESİ (/api/event-polls)
-//  -> Hem BASE_PLANNED_EVENTS hem de event-requests.json'dan gelenler
-//  -> Oylama sonuçlarını event-votes.json'dan birleştirir
 // ---------------------------------------------------------
 app.get("/api/event-polls", (req, res) => {
   const votesData = readJson(EVENT_VOTES_FILE, { votes: {} });
