@@ -607,6 +607,86 @@ body {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
+/* Hamburger butonu – masaüstünde gizli */
+.nav-toggle {
+  display: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 999px;
+}
+
+.nav-toggle-line {
+  display: block;
+  width: 20px;
+  height: 2px;
+  margin: 3px 0;
+  background: var(--accent, #7cffb2);
+  border-radius: 999px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Navbar açıkken hamburger animasyonu (X şekli) */
+.navbar.is-open .nav-toggle-line:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+.navbar.is-open .nav-toggle-line:nth-child(2) {
+  opacity: 0;
+}
+.navbar.is-open .nav-toggle-line:nth-child(3) {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+/* Mobil kırılım */
+@media (max-width: 768px) {
+  .navbar {
+    align-items: center;
+  }
+
+  .nav-right {
+    position: absolute;
+    top: 64px; /* navbar yüksekliğine göre ayarla */
+    right: 1rem;
+    left: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(6, 35, 22, 0.98);
+    border-radius: 1rem;
+    border: 1px solid rgba(144, 238, 144, 0.2);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+    z-index: 50;
+  }
+
+  .navbar.is-open .nav-right {
+    display: flex;
+  }
+
+  .nav-right .nav-link {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.45rem 0.4rem;
+  }
+
+  /* Brand ve chip aynı satırda kalsın, menü sağda buton olsun */
+  .navbar {
+    position: relative;
+  }
+
+  .nav-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 0.5rem;
+  }
+
+  .nav-left {
+    flex: 1;
+  }
+}
 
   .hero {
     grid-template-columns: minmax(0, 1fr);
@@ -892,7 +972,8 @@ html[data-page="volunteer"] input[type="number"].input::-webkit-inner-spin-butto
   margin: 0;
 }
 html[data-page="volunteer"] input[type="number"].input {
-  -moz-appearance: textfield;
+  appearance: textfield;      /* Standart */
+  -moz-appearance: textfield; /* Firefox */
 }
 
 /* Checkbox grubu: chip tarzı */

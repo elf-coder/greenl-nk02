@@ -729,3 +729,35 @@ async function renderPlannedEventsPoll() {
 
 // Sayfa yüklendiğinde anketi başlat
 document.addEventListener("DOMContentLoaded", renderPlannedEventsPoll);
+
+// -------------------------
+// Hamburger Menü
+// -------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const navbar = document.querySelector(".navbar");
+  const navToggle = document.querySelector(".nav-toggle");
+  const mainNav = document.getElementById("main-nav");
+
+  if (!navbar || !navToggle || !mainNav) return;
+
+  navToggle.addEventListener("click", () => {
+    navbar.classList.toggle("is-open");
+    document.body.classList.toggle("nav-open");
+  });
+
+  // Bir linke tıklanınca menüyü kapat (mobilde rahat kullanım)
+  mainNav.querySelectorAll(".nav-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      navbar.classList.remove("is-open");
+      document.body.classList.remove("nav-open");
+    });
+  });
+
+  // Ekran yeniden büyürse (örneğin telden yataya geçiş), menüyü resetle
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      navbar.classList.remove("is-open");
+      document.body.classList.remove("nav-open");
+    }
+  });
+});
