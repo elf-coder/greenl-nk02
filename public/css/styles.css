@@ -1182,3 +1182,21 @@ html[data-page="volunteer"] .event-poll-note {
     padding-inline: 0.8rem;
   }
 }
+/* Gönüllü sayfası küçük düzenlemeler */
+#volunteer-guide .card {
+  padding: 1.75rem 1.5rem;
+}
+
+#volunteer-guide .bullet-list li {
+  margin-bottom: 0.35rem;
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    text-align: center;
+  }
+
+  #volunteer-guide .card {
+    padding: 1.5rem 1.25rem;
+  }
+}
