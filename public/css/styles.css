@@ -1253,3 +1253,12 @@ html[data-page="volunteer"] #event-request .section-header,
 html[data-page="volunteer"] #volunteer-guide .section-header {
   text-align: center;      /* başlık + alt başlık ortası */
 }
+/* Gönüllü sayfası: ortalanmış dar bölümler */
+html[data-page="volunteer"] .section-narrow {
+  max-width: 900px;        /* bölüm genişliği */
+  margin: 3rem auto 0;     /* ortaya al + üst boşluk */
+}
+
+html[data-page="volunteer"] .section-narrow .section-header {
+  text-align: center;      /* başlık ve alt başlık ortalı */
+}
