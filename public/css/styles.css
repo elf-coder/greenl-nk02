@@ -1200,36 +1200,41 @@ html[data-page="volunteer"] .event-poll-note {
     padding: 1.5rem 1.25rem;
   }
 }
+/* --- Gönüllü sayfası özel düzen --- */
 
-/* --- Gönüllü sayfası için özel düzen --- */
-
-/* Anket kartını ortala ve genişlet */
-html[data-page="volunteer"] .split {
-  justify-content: center;        /* tek kartı ortaya al */
+/* Üst bölüm genişliğini sınırla ve ortaya al */
+.volunteer-top {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-html[data-page="volunteer"] .split-card {
-  flex: 0 1 1100px;               /* geniş kart */
-  width: 100%;
+/* Anket kartı: geniş, ortalanmış kart */
+.volunteer-anket-card {
+  background: var(--card-bg-soft);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--border);
 }
 
-/* Etkinlik kartlarını grid yapısı ile yan yana diz */
-.event-poll-list {
+/* Etkinlikleri grid olarak diz */
+.event-grid {
   display: grid;
-  grid-template-columns: 1fr;     /* varsayılan: tek sütun (mobil) */
+  grid-template-columns: 1fr;   /* mobil: tek sütun */
   gap: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 /* Tablet: 2 sütun */
 @media (min-width: 768px) {
-  .event-poll-list {
+  .event-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Büyük ekran: 3 sütun (senin dediğin gibi "üç sağlı üç sollu") */
+/* Geniş ekran: 3 sütun */
 @media (min-width: 1200px) {
-  .event-poll-list {
+  .event-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

@@ -46,7 +46,8 @@
     <main class="container">
       
       <!-- ÜST KISIM: SADECE ANKET -->
-      <section class="section">
+            <!-- ÜST KISIM: BAŞLIK + GENİŞ ANKET KARTI -->
+      <section class="section volunteer-top">
         <div class="section-header">
           <h1 class="section-title">Gönüllü Ol</h1>
           <p class="section-subtitle">
@@ -54,26 +55,25 @@
           </p>
         </div>
 
-        <div class="split">
-          <div class="split-card">
-            <h2 class="section-title" style="font-size:1.05rem;">Planlanan Etkinlikler Anketi</h2>
-            <p class="prose" id="events-intro">
-              Aşağıda topluluktan gelen çevre etkinliklerini görüyorsun. Her etkinlik için
-              <strong>“Katılıyorum”</strong> veya <strong>“Katılmıyorum”</strong> diyerek ankete katkı verebilirsin.
-              Oylar sadece istatistik amaçlıdır.
-            </p>
+        <div class="volunteer-anket-card">
+          <h2 class="section-title" style="font-size:1.05rem;">Planlanan Etkinlikler Anketi</h2>
+          <p class="prose" id="events-intro">
+            Aşağıda topluluktan gelen çevre etkinliklerini görüyorsun. Her etkinlik için
+            <strong>“Katılıyorum”</strong> veya <strong>“Katılmıyorum”</strong> diyerek ankete katkı verebilirsin.
+            Oylar sadece istatistik amaçlıdır.
+          </p>
 
-            <!-- ETKİNLİK LİSTESİ BURAYA JS İLE DOLDURULACAK -->
-            <div id="planned-events" class="event-poll-list"></div>
+          <!-- ETKİNLİK LİSTESİ BURAYA JS İLE DOLDURULACAK -->
+          <div id="planned-events" class="event-grid"></div>
 
-            <!-- Hiç etkinlik yoksa gösterilecek mesaj -->
-            <p class="prose" id="no-events-message" style="display:none;">
-              Şu anda ankete açılmış bir etkinlik görünmüyor.
-              İlk etkinliği önermek için aşağıdaki formu doldurabilirsin. 🌿
-            </p>
-          </div>
+          <!-- Hiç etkinlik yoksa gösterilecek mesaj -->
+          <p class="prose" id="no-events-message" style="display:none;">
+            Şu anda ankete açılmış bir etkinlik görünmüyor.
+            İlk etkinliği önermek için aşağıdaki formu doldurabilirsin. 🌿
+          </p>
         </div>
       </section>
+
 
       <!-- ORTA KISIM: ETKİNLİK TALEP + ANKET FORMU -->
       <section class="section" id="event-request">
