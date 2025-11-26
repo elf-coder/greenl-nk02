@@ -1262,3 +1262,24 @@ html[data-page="volunteer"] .section-narrow {
 html[data-page="volunteer"] .section-narrow .section-header {
   text-align: center;      /* başlık ve alt başlık ortalı */
 }
+
+/* =======================================
+   GÖNÜLLÜ SAYFASI SON DÜZELTME BLOĞU
+   Başlıkları dikey ve ortalı yap + iki
+   bölümü (event-request & volunteer-guide)
+   ortaya al
+   ======================================= */
+
+/* Bu sayfada section-header artık flex değil, blok */
+html[data-page="volunteer"] .section-header {
+  display: block !important;      /* flex'i iptal et */
+  text-align: center !important;  /* başlık ve alt başlık ortalı */
+  margin-bottom: 1.75rem;
+}
+
+/* İki bölümü ortala ve biraz daralt */
+html[data-page="volunteer"] #event-request,
+html[data-page="volunteer"] #volunteer-guide {
+  max-width: 900px;
+  margin: 3rem auto 0;            /* yatay ortalama */
+}
