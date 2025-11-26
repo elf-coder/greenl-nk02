@@ -1238,3 +1238,18 @@ html[data-page="volunteer"] .event-poll-note {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+/* --------------------------------------------- */
+/* Gönüllü sayfasında iki bölümün ortalanması    */
+/* (#event-request ve #volunteer-guide)          */
+/* --------------------------------------------- */
+
+html[data-page="volunteer"] #event-request,
+html[data-page="volunteer"] #volunteer-guide {
+  max-width: 900px;        /* genişliği düzenli tut */
+  margin: 3rem auto 0;     /* ortala + üst boşluk ekle */
+}
+
+html[data-page="volunteer"] #event-request .section-header,
+html[data-page="volunteer"] #volunteer-guide .section-header {
+  text-align: center;      /* başlık + alt başlık ortası */
+}
