@@ -1200,3 +1200,36 @@ html[data-page="volunteer"] .event-poll-note {
     padding: 1.5rem 1.25rem;
   }
 }
+
+/* --- Gönüllü sayfası için özel düzen --- */
+
+/* Anket kartını ortala ve genişlet */
+html[data-page="volunteer"] .split {
+  justify-content: center;        /* tek kartı ortaya al */
+}
+
+html[data-page="volunteer"] .split-card {
+  flex: 0 1 1100px;               /* geniş kart */
+  width: 100%;
+}
+
+/* Etkinlik kartlarını grid yapısı ile yan yana diz */
+.event-poll-list {
+  display: grid;
+  grid-template-columns: 1fr;     /* varsayılan: tek sütun (mobil) */
+  gap: 1.5rem;
+}
+
+/* Tablet: 2 sütun */
+@media (min-width: 768px) {
+  .event-poll-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Büyük ekran: 3 sütun (senin dediğin gibi "üç sağlı üç sollu") */
+@media (min-width: 1200px) {
+  .event-poll-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
