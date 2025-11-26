@@ -22,7 +22,8 @@
   --radius-pill: 999px;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
@@ -95,7 +96,8 @@ body {
   gap: 0.75rem;
 }
 
-.nav-left, .nav-right {
+.nav-left,
+.nav-right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -166,6 +168,39 @@ body {
   color: var(--accent-soft);
   border-color: rgba(74, 222, 128, 0.65);
   background: radial-gradient(circle at top, rgba(22, 163, 74, 0.4), rgba(5, 30, 18, 0.95));
+}
+
+/* Hamburger buton – masaüstünde gizli */
+
+.nav-toggle {
+  display: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 999px;
+}
+
+.nav-toggle-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin: 3px 0;
+  background: var(--accent, #3ad17b);
+  border-radius: 999px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Navbar açıkken hamburger animasyonu (X şekli) */
+.navbar.is-open .nav-toggle-line:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+.navbar.is-open .nav-toggle-line:nth-child(2) {
+  opacity: 0;
+}
+.navbar.is-open .nav-toggle-line:nth-child(3) {
+  transform: translateY(-5px) rotate(-45deg);
 }
 
 /* Utility chips & small UI */
@@ -591,65 +626,27 @@ body {
   padding-left: 1.1rem;
 }
 
-/* Responsive */
+/* =======================================
+   RESPONSIVE
+   ======================================= */
 
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: column;
-    align-items: stretch;
+    position: relative;
+    padding-inline: 1rem;
   }
 
   .nav-left {
-    justify-content: space-between;
+    flex: 1;
   }
 
-  .nav-right {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
-/* Hamburger butonu – masaüstünde gizli */
-.nav-toggle {
-  display: none;
-  border: none;
-  outline: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0.4rem;
-  border-radius: 999px;
-}
-
-.nav-toggle-line {
-  display: block;
-  width: 20px;
-  height: 2px;
-  margin: 3px 0;
-  background: var(--accent, #7cffb2);
-  border-radius: 999px;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-/* Navbar açıkken hamburger animasyonu (X şekli) */
-.navbar.is-open .nav-toggle-line:nth-child(1) {
-  transform: translateY(5px) rotate(45deg);
-}
-.navbar.is-open .nav-toggle-line:nth-child(2) {
-  opacity: 0;
-}
-.navbar.is-open .nav-toggle-line:nth-child(3) {
-  transform: translateY(-5px) rotate(-45deg);
-}
-
-/* Mobil kırılım */
-@media (max-width: 768px) {
-  .navbar {
-    align-items: center;
-  }
-
+  /* Menü kartı: sağ üstten açılan overlay */
   .nav-right {
     position: absolute;
-    top: 64px; /* navbar yüksekliğine göre ayarla */
+    top: 100%;
     right: 1rem;
     left: 1rem;
+    margin-top: 0.5rem;
     padding: 0.75rem 1rem;
     background: rgba(6, 35, 22, 0.98);
     border-radius: 1rem;
@@ -671,22 +668,14 @@ body {
     padding: 0.45rem 0.4rem;
   }
 
-  /* Brand ve chip aynı satırda kalsın, menü sağda buton olsun */
-  .navbar {
-    position: relative;
-  }
-
+  /* Hamburger: sağ köşede */
   .nav-toggle {
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
-    margin-left: 0.5rem;
+    margin-left: 0.5rem; /* navbar'ın son elemanı olarak sağa yaslanır */
   }
-
-  .nav-left {
-    flex: 1;
-  }
-}
 
   .hero {
     grid-template-columns: minmax(0, 1fr);
@@ -712,6 +701,9 @@ body {
   }
 }
 
+/* --------------------------------------
+   Brand badge + global link reset
+   -------------------------------------- */
 
 .brand-badge {
   display: inline-flex;
@@ -719,10 +711,10 @@ body {
   gap: 6px;
   padding: 6px 14px;
   border-radius: 16px;
-  background: rgba(0, 80, 35, 0.35); /* koyu yeşil transparan */
+  background: rgba(0, 80, 35, 0.35);
   border: 1px solid rgba(0, 255, 140, 0.22);
   text-decoration: none;
-  color: #b9ffcf; /* pastel yeşil */
+  color: #b9ffcf;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.5px;
@@ -744,15 +736,17 @@ body {
   font-size: 1.1rem;
 }
 
-
 /* Tüm linklerde alt çizgiyi kapat */
-a, a:visited, a:hover, a:active {
+a,
+a:visited,
+a:hover,
+a:active {
   text-decoration: none !important;
 }
 
 /* Marka badge içindeki tüm alt çizgileri iptal et */
-.brand-badge *, 
-.brand-text, 
+.brand-badge *,
+.brand-text,
 .brand-icon {
   text-decoration: none !important;
   border-bottom: none !important;
@@ -771,14 +765,13 @@ a, a:visited, a:hover, a:active {
 }
 
 main.container {
-  flex: 1; /* içerik büyüdükçe footer aşağı itilir */
+  flex: 1;
 }
 
 /*****************************************
  * GÖNÜLLÜ OL SAYFASI (gonullu.html)
  *****************************************/
 html[data-page="volunteer"] body {
-  /* Sayfaya hafif, canlı bir arka plan */
   background:
     radial-gradient(circle at 0% 0%, rgba(74, 222, 128, 0.15), transparent 55%),
     radial-gradient(circle at 100% 100%, rgba(45, 212, 191, 0.15), transparent 55%),
@@ -824,7 +817,7 @@ html[data-page="volunteer"] .nav-link[data-page="volunteer"] {
   border-radius: 999px;
 }
 
-/* Üst iki kart: “henüz etkinlik yok” + “hafif kılavuz” */
+/* Üst iki kart */
 html[data-page="volunteer"] .split {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
@@ -836,8 +829,9 @@ html[data-page="volunteer"] .split-card {
   position: relative;
   padding: 1.5rem 1.4rem;
   border-radius: 1.25rem;
-  background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.16), transparent 60%),
-              rgba(15, 23, 42, 0.9);
+  background:
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.16), transparent 60%),
+    rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.25);
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(16px);
@@ -862,7 +856,7 @@ html[data-page="volunteer"] .split-card:first-child h2.section-title::before {
   content: "📅";
 }
 
-/* Paragraf tipografisi */
+/* Paragraf */
 html[data-page="volunteer"] .prose {
   font-size: 0.95rem;
   line-height: 1.6;
@@ -870,7 +864,7 @@ html[data-page="volunteer"] .prose {
   margin-bottom: 0.65rem;
 }
 
-/* Bullet list yeniden tasarım */
+/* Bullet list */
 html[data-page="volunteer"] .bullet-list {
   list-style: none;
   padding-left: 0;
@@ -894,13 +888,10 @@ html[data-page="volunteer"] .bullet-list li::before {
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 999px;
-  background: linear-gradient(135deg,
-    var(--accent, #22c55e),
-    #2dd4bf
-  );
+  background: linear-gradient(135deg, var(--accent, #22c55e), #2dd4bf);
 }
 
-/* Buton için hafif parıltı */
+/* Buton */
 html[data-page="volunteer"] .split-card .btn {
   display: inline-flex;
   align-items: center;
@@ -917,8 +908,9 @@ html[data-page="volunteer"] .split-card .btn::after {
 html[data-page="volunteer"] .card {
   border-radius: 1.5rem;
   padding: 1.75rem 1.5rem 1.6rem;
-  background: radial-gradient(circle at top right, rgba(45, 212, 191, 0.18), transparent 60%),
-              rgba(15, 23, 42, 0.95);
+  background:
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.18), transparent 60%),
+    rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(148, 163, 184, 0.25);
   box-shadow: 0 20px 55px rgba(15, 23, 42, 0.85);
 }
@@ -965,18 +957,18 @@ html[data-page="volunteer"] .input:focus {
   background: rgba(15, 23, 42, 0.95);
 }
 
-/* Number input için yan okları sakla (isteğe bağlı) */
+/* Number input spinner gizle */
 html[data-page="volunteer"] input[type="number"].input::-webkit-outer-spin-button,
 html[data-page="volunteer"] input[type="number"].input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 html[data-page="volunteer"] input[type="number"].input {
-  appearance: textfield;      /* Standart */
-  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 
-/* Checkbox grubu: chip tarzı */
+/* Checkbox grubu */
 html[data-page="volunteer"] .checkbox-group {
   display: flex;
   flex-wrap: wrap;
@@ -1014,7 +1006,8 @@ html[data-page="volunteer"] button.btn {
   font-size: 0.95rem;
   padding-block: 0.65rem;
   border-radius: 999px;
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     var(--accent, #22c55e),
     #22c55e 30%,
     #14b8a6
@@ -1043,7 +1036,7 @@ html[data-page="volunteer"] #event-request-message {
   color: #bbf7d0;
 }
 
-/* Footer hafif şeffaflık */
+/* Footer */
 html[data-page="volunteer"] .footer {
   background: rgba(15, 23, 42, 0.95);
   border-top: 1px solid rgba(148, 163, 184, 0.4);
